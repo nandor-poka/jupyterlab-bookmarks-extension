@@ -1,7 +1,7 @@
 {
   "name": "jupyterlab-favorites-extension",
   "version": "0.1.0",
-  "description": "A JupyterLab extension to provide Launcher icons for favorites. Allows "bookmarking" files for quick access from the Launcher.",
+  "description": "A JupyterLab extension to provide Launcher icons for favorites. Allows 'bookmarking' files for quick access from the Launcher.",
   "keywords": [
     "jupyter",
     "jupyterlab",

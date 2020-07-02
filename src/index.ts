@@ -12,7 +12,9 @@ const extension: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab-favorites-extension',
   autoStart: true,
   activate: (app: JupyterFrontEnd) => {
-    console.log('JupyterLab extension jupyterlab-favorites-extension is activated!');
+    console.log(
+      'JupyterLab extension jupyterlab-favorites-extension is activated!'
+    );
 
     requestAPI<any>('get_example')
       .then(data => {

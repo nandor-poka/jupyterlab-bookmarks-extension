@@ -10,7 +10,7 @@ import { ICommandPalette } from '@jupyterlab/apputils';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { Menu } from '@lumino/widgets';
 
-const TITLE = 'Favorites'
+const TITLE = 'Favorites';
 const FACTORY = 'Notebook';
 /**
  * Initialization data for the jupyterlab-favorites-extension extension.
@@ -32,25 +32,25 @@ const extension: JupyterFrontEndPlugin<void> = {
     favoritesMainMenu.title.label = TITLE;
     mainMenu.addMenu(favoritesMainMenu);
     const addFavoriteCommand = {
-      id:commandPrefix+'addFavorite', 
-      options:{
-        label:'Add to favorites',
-        caption:'Add to favorites',
-        execute: (async: any) => {
+      id: commandPrefix + 'addFavorite',
+      options: {
+        label: 'Add to favorites',
+        caption: 'Add to favorites',
+        execute: (async: any): any => {
           return commands.execute('docmanager:open', {
-          path: '',
-          factory: FACTORY
+            path: '',
+            factory: FACTORY
           });
         }
       }
-    }
-    commands.addCommand(addFavoriteCommand.id, addFavoriteCommand.options)
+    };
+    commands.addCommand(addFavoriteCommand.id, addFavoriteCommand.options);
     app.contextMenu.addItem({
       command: addFavoriteCommand.id,
       selector: '.jp-Notebook',
       rank: 10
-    })
-    
+    });
+
     console.log(
       'JupyterLab extension jupyterlab-favorites-extension is activated!'
     );

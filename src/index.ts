@@ -18,6 +18,7 @@ const FACTORY = 'Notebook';
 const extension: JupyterFrontEndPlugin<void> = {
   id: 'jupyterlab-favorites-extension',
   autoStart: true,
+  requires: [ILauncher, ISettingRegistry, IMainMenu, ICommandPalette],
   activate: (
     app: JupyterFrontEnd,
     launcher: ILauncher,
@@ -46,14 +47,15 @@ const extension: JupyterFrontEndPlugin<void> = {
     commands.addCommand(addFavoriteCommand.id, addFavoriteCommand.options)
     app.contextMenu.addItem({
       command: addFavoriteCommand.id,
-      selector: '.jp-Notebook'
+      selector: '.jp-Notebook',
+      rank: 10
     })
     
     console.log(
       'JupyterLab extension jupyterlab-favorites-extension is activated!'
     );
 
-    requestAPI<any>('get_example')
+    requestAPI<any>('startup')
       .then(data => {
         console.log(data);
       })

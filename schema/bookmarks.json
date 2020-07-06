@@ -1,9 +1,9 @@
 {
-    "title": "JupyterLab Favoirtes ettings",
-    "description": "Settings for the JupyterLab Favorites extension.",
+    "title": "JupyterLab Bookmarks ettings",
+    "description": "Settings for the JupyterLab Bookmarks extension.",
     "type": "object",
     "properties": {
-      "favorites": {
+      "bookmarks": {
         "type": "array",
         "title": "Bookmarks",
         "description": "Map of notebook names and paths for favorited items.",

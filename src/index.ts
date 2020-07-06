@@ -55,7 +55,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           const currentDocPath = currentDoc.context.path;
           bookmarks.push([currentDocName, currentDocPath]);
 
-          await settingsObject.set('Bookmarks', bookmarks);
+          await settingsObject.set('bookmarks', bookmarks);
         }
       }
     };
@@ -68,7 +68,7 @@ const extension: JupyterFrontEndPlugin<void> = {
      */
     function loadSetting(settings: ISettingRegistry.ISettings): void {
       // Read the settings and convert to the correct type
-      bookmarks = settings.get('Bookmarks').composite as Array<Array<string>>;
+      bookmarks = settings.get('bookmarks').composite as Array<Array<string>>;
       bookmarks.forEach(itemArray => {
         commands.addCommand(commandPrefix + itemArray[0], {
           label: itemArray[0],

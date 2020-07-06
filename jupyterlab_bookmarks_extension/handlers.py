@@ -30,9 +30,9 @@ def setup_handlers(web_app):
     host_pattern = ".*$"
     
     base_url = web_app.settings["base_url"]
-    startup_pattern = url_path_join(base_url, "jupyterlab-favorites-extension", "startup")
-    add_favorite_pattern = url_path_join(base_url, "jupyterlab-favorites-extension", "addFavorite")
-    get_favorites_pattern =  url_path_join(base_url, "jupyterlab-favorites-extension", "getFavorites")
+    startup_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "startup")
+    add_favorite_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "addFavorite")
+    get_favorites_pattern =  url_path_join(base_url, "jupyterlab-bookmarks-extension", "getFavorites")
     handlers = [
         (startup_pattern, StartupHandler),
         (add_favorite_pattern, AddFavortiteHandler),

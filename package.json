@@ -1,20 +1,24 @@
 {
-  "name": "jupyterlab-favorites-extension",
+  "name": "jupyterlab-bookmarks-extension",
   "version": "0.1.0",
   "description": "A JupyterLab extension to provide Launcher icons for favorites. Allows 'bookmarking' files for quick access from the Launcher.",
   "keywords": [
     "jupyter",
     "jupyterlab",
-    "jupyterlab-extension"
+    "jupyterlab-extension",
+    "bookmarks",
+    "favorites",
+    "quick access"
   ],
-  "homepage": "https://github.com/nandor-poka/jupyterlab-favorites-extension",
+  "homepage": "https://github.com/nandor-poka/jupyterlab-bookmarks-extension",
   "bugs": {
-    "url": "https://github.com/nandor-poka/jupyterlab-favorites-extension/issues"
+    "url": "https://github.com/nandor-poka/jupyterlab-bookmarks-extension/issues"
   },
   "license": "BSD-3-Clause",
   "author": "Dr. Nandor Poka",
   "files": [
     "lib/**/*.{d.ts,eot,gif,html,jpg,js,js.map,json,png,svg,woff2,ttf}",
+    "schema/**/*.json",
     "style/**/*.{css,eot,gif,html,jpg,json,png,svg,woff2,ttf}"
   ],
   "main": "lib/index.js",
@@ -22,16 +26,16 @@
   "style": "style/index.css",
   "repository": {
     "type": "git",
-    "url": "https://github.com/nandor-poka/jupyterlab-favorites-extension.git"
+    "url": "https://github.com/nandor-poka/jupyterlab-bookmarks-extension.git"
   },
   "scripts": { 
     "build": "jlpm run build:lib",
-    "build:labextension": "cd jupyterlab_favorites_extension && rimraf labextension && mkdirp labextension && cd labextension && npm pack ../..",
+    "build:labextension": "cd jupyterlab_bookmarks_extension && rimraf labextension && mkdirp labextension && cd labextension && npm pack ../..",
     "build:lib": "tsc",
     "build:all": "jlpm run build:labextension",
     "clean": "jlpm run clean:lib",
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
-    "clean:labextension": "rimraf jupyterlab_favorites_extension/labextension",
+    "clean:labextension": "rimraf jupyterlab_bookmarks_extension/labextension",
     "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
 
     "eslint": "eslint . --ext .ts,.tsx --fix",
@@ -44,7 +48,8 @@
     "@jupyterlab/coreutils": "^4.0.0",
     "@jupyterlab/services": "^5.0.0",
     "@jupyterlab/launcher": "^2.1.0",
-    "@jupyterlab/mainmenu": "^2.1.0"
+    "@jupyterlab/mainmenu": "^2.1.0",
+    "@jupyterlab/notebook": "2.1.2"
 
   },
   "devDependencies": {
@@ -68,10 +73,11 @@
             "pip"
           ],
           "base": {
-            "name": "jupyterlab_favorites_extension"
+            "name": "jupyterlab_bookmarks_extension"
           }
         }
     }, 
-    "extension": true
+    "extension": true,
+    "schemaDir": "schema"
   }
 }

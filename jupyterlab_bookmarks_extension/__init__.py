@@ -4,7 +4,7 @@ from .handlers import setup_handlers
 
 def _jupyter_server_extension_paths():
     return [{
-        "module": "jupyterlab_favorites_extension"
+        "module": "jupyterlab_bookmarks_extension"
     }]
 
 
@@ -17,4 +17,4 @@ def load_jupyter_server_extension(lab_app):
         JupyterLab application instance
     """
     setup_handlers(lab_app.web_app)
-    lab_app.log.info("Registered HelloWorld extension at URL path /jupyterlab-favorites-extension")
+    lab_app.log.info("Registered JupyterLab Bookmarks extension at URL path /jupyterlab-bookmarks-extension")

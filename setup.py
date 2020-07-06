@@ -12,7 +12,7 @@ import setuptools
 HERE = os.path.abspath(os.path.dirname(__file__))
 
 # The name of the project
-name="jupyterlab_favorites_extension"
+name="jupyterlab_bookmarks_extension"
 
 # Ensure a valid python version
 ensure_python(">=3.5")
@@ -24,7 +24,7 @@ lab_path = os.path.join(HERE, name, "labextension")
 
 # Representative files that should exist after a successful build
 jstargets = [
-    os.path.join(HERE, "lib", "jupyterlab-favorites-extension.js"),
+    os.path.join(HERE, "lib", "jupyterlab-bookmarks-extension.js"),
 ]
 
 package_data_spec = {
@@ -36,7 +36,7 @@ package_data_spec = {
 data_files_spec = [
     ("share/jupyter/lab/extensions", lab_path, "*.tgz"),
     ("etc/jupyter/jupyter_notebook_config.d",
-     "jupyter-config", "jupyterlab_favorites_extension.json"),
+     "jupyter-config", "jupyterlab_bookmarks_extension.json"),
 ]
 
 cmdclass = create_cmdclass("jsdeps", 
@@ -55,7 +55,7 @@ with open("README.md", "r") as fh:
 setup_args = dict(
     name=name,
     version=version,
-    url="https://github.com/nandor-poka/jupyterlab-favorites-extension",
+    url="https://github.com/nandor-poka/jupyterlab-bookmarks-extension",
     author="Dr. Nandor Poka",
     description="A JupyterLab extension to provide Launcher icons for favorites. Allows 'bookmarking' files for quick access from the Launcher.",
     long_description= long_description,

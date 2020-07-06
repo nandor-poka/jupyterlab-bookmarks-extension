@@ -31,8 +31,8 @@ jobs:
         pip install .
         jupyter lab build
         jupyter serverextension list 1>serverextensions 2>&1
-        cat serverextensions | grep "jupyterlab_favorites_extension.*OK"
+        cat serverextensions | grep "jupyterlab_bookmarks_extension.*OK"
         jupyter labextension list 1>labextensions 2>&1
-        cat labextensions | grep "jupyterlab-favorites-extension.*OK"
+        cat labextensions | grep "jupyterlab-bookmarks-extension.*OK"
 
         python -m jupyterlab.browser_check

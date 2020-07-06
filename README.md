@@ -1,12 +1,12 @@
-# jupyterlab-favorites-extension
+# jupyterlab-bookmarks-extension
 
-![Github Actions Status](https://github.com/nandor-poka/jupyterlab-favorites-extension/workflows/Build/badge.svg)
+![Github Actions Status](https://github.com/nandor-poka/jupyterlab-bookmarks-extension/workflows/Build/badge.svg)
 
-A JupyterLab extension to provide Launcher icons for favorites. Allows "bookmarking" files for quick access from the Launcher.
+A JupyterLab extension to provide Launcher icons for favorites. Allows bookmarking files for quick access from the Launcher.
 
 
-This extension is composed of a Python package named `jupyterlab_favorites_extension`
-for the server extension and a NPM package named `jupyterlab-favorites-extension`
+This extension is composed of a Python package named `jupyterlab_bookmarks_extension`
+for the server extension and a NPM package named `jupyterlab-bookmarks-extension`
 for the frontend extension.
 
 
@@ -19,7 +19,7 @@ for the frontend extension.
 Note: You will need NodeJS to install the extension.
 
 ```bash
-pip install jupyterlab_favorites_extension
+pip install jupyterlab_bookmarks_extension
 jupyter lab build
 ```
 
@@ -56,12 +56,12 @@ The `jlpm` command is JupyterLab's pinned version of
 
 ```bash
 # Clone the repo to your local environment
-# Move to jupyterlab-favorites-extension directory
+# Move to jupyterlab-bookmarks-extension directory
 
 # Install server extension
 pip install -e .
 # Register server extension
-jupyter serverextension enable --py jupyterlab_favorites_extension --sys-prefix
+jupyter serverextension enable --py jupyterlab_bookmarks_extension --sys-prefix
 
 # Install dependencies
 jlpm
@@ -89,6 +89,6 @@ Now every change will be built locally and bundled into JupyterLab. Be sure to r
 ### Uninstall
 
 ```bash
-pip uninstall jupyterlab_favorites_extension
-jupyter labextension uninstall jupyterlab-favorites-extension
+pip uninstall jupyterlab_bookmarks_extension
+jupyter labextension uninstall jupyterlab-bookmarks-extension
 ```

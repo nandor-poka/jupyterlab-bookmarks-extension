@@ -12,7 +12,7 @@ import { INotebookTracker } from '@jupyterlab/notebook';
 import { notebookIcon } from '@jupyterlab/ui-components';
 import { Menu } from '@lumino/widgets';
 
-const TITLE = '';
+const TITLE = 'Bookmarks';
 const NOTEBOOK_FACTORY = 'Notebook';
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
 let bookmarks: Array<Array<string>> = new Array<Array<string>>();
@@ -54,7 +54,6 @@ const extension: JupyterFrontEndPlugin<void> = {
           const currentDocName = currentDoc.context.contentsModel.name;
           const currentDocPath = currentDoc.context.path;
           bookmarks.push([currentDocName, currentDocPath]);
-
           await settingsObject.set('bookmarks', bookmarks);
         }
       }
@@ -70,6 +69,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       // Read the settings and convert to the correct type
       bookmarks = settings.get('bookmarks').composite as Array<Array<string>>;
       bookmarks.forEach(itemArray => {
+        commands.hasCommand(commandPrefix + itemArray[0]);
         commands.addCommand(commandPrefix + itemArray[0], {
           label: itemArray[0],
           caption: itemArray[0],
@@ -85,8 +85,8 @@ const extension: JupyterFrontEndPlugin<void> = {
           command: commandPrefix + itemArray[0],
           category: TITLE
         });
+        console.log(commandPrefix + itemArray[0] + ' added to Launcher');
       });
-      console.log('JupyterLab bookmarks settings loaded.');
     }
 
     // Wait for the application to be restored and

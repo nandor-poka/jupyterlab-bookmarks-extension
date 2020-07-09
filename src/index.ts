@@ -96,13 +96,13 @@ const extension: JupyterFrontEndPlugin<void> = {
 
         // Listen for your plugin setting changes using Signal
         //settingsObject.changed.connect(loadSetting);
-        
+
         requestAPI<any>('updateBookmarks', {
           method: 'POST',
           body: JSON.stringify({ bookmarksData: bookmarks })
         })
           .then(data => {
-            bookmarks = data.bookmarks;            
+            bookmarks = data.bookmarks;
             bookmarks.forEach(bookmarkItem => {
               addBookmark(bookmarkItem);
             });
@@ -153,7 +153,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     function addBookmark(bookmarkItem: string[]): void {
       console.log(bookmarkItem);
       const commandId: string = bookmarkItem[0];
-      const disabled = (bookmarkItem[4] === 'True');
+      const disabled = bookmarkItem[4] === 'True';
       console.log(disabled);
       if (commands.hasCommand(commandPrefix + commandId)) {
         const commandToDelete = bookmarkCommands.get(commandId);

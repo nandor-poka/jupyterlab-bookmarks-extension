@@ -35,19 +35,20 @@ class StartupHandler(APIHandler):
         try:
             data = self.get_json_body()
             # Data structure is Array of arrays => [[0:name, 1:path in current JL root, 2:absolute_path, 3:temp_path, 4:<disabled]]
-            bookmarks = data["bookmarks_data"]
-            logger.debug(bookmarks)
+            bookmarks = data["bookmarkData"]
             for bookmark in bookmarks:
                 logger.debug(bookmark)
                 bookmarkPath = bookmark[1]
                 disabled = False
                 bookmarkAbsPath = bookmark[2]
                 if not os.path.exists(os.path.join(self.root_dir, bookmarkPath)):
+                    logger.debug(f'{os.path.join(self.root_dir, bookmarkPath)} does not exist.')
                     # if we get here, then the current bookmark item is not accessible from the current JL root dir
                     # in this case we should make .tmp dir in current root and copy the bookmarked item
                     # and then use this path in the JL Launcher. Syncing back to the original file is important.
                     
                     if not os.path.exists(bookmarkAbsPath):
+                        logger.debug(f'{bookmarkAbsPath} does not exist.')
                         disabled = True
 
                     # create .tmp dir if it doesn't exist yet
@@ -69,9 +70,10 @@ class StartupHandler(APIHandler):
                 else:
                     # In this case the bookmark is accessible directly from current JL root.
                     # we set temp_path to JL root path
-                    bookmark[3] = bookmark[2]
+                    logger.debug('Bookmark available from JL root.')
+                    bookmark[3] = bookmark[1]
                     bookmark[4] = str(False) # index 4
-                
+                logger.debug(bookmark)
             _bookmarks = bookmarks  
             self.finish(
                 json.dumps({
@@ -85,7 +87,7 @@ class StartupHandler(APIHandler):
 class getAbsPathHandler(APIHandler):
 
     @tornado.web.authenticated
-    def get(self):
+    def post(self):
         #Data structure [name, path in current JL root, absolute_path, temp_path, disabled]
         bookmarkItem = self.get_json_body()
         bookmarkPath = bookmarkItem[1]
@@ -98,6 +100,7 @@ class getAbsPathHandler(APIHandler):
             error = True
             reason = str(ex)
         bookmarkItem[2] = bookmarkAbsPath
+        bookmarkItem[3] = bookmarkItem[1]
         self.finish(json.dumps({
             'bookmarkItem': bookmarkItem,
             'error': error,
@@ -112,6 +115,6 @@ def setup_handlers(web_app):
     getAbsPath_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "getAbsPath")
     handlers = [
         (startup_pattern, StartupHandler),
-        (getAbsPath_pattern, getAbsPath_pattern)
+        (getAbsPath_pattern, getAbsPathHandler)
         ]
     web_app.add_handlers(host_pattern, handlers)

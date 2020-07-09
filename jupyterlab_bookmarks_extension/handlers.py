@@ -35,7 +35,7 @@ class StartupHandler(APIHandler):
         try:
             data = self.get_json_body()
             # Data structure is Array of arrays => [[0:name, 1:path in current JL root, 2:absolute_path, 3:temp_path, 4:<disabled]]
-            bookmarks = data["bookmarkData"]
+            bookmarks = data["bookmarksData"]
             for bookmark in bookmarks:
                 logger.debug(bookmark)
                 bookmarkPath = bookmark[1]

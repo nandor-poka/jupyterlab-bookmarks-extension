@@ -110,11 +110,11 @@ const extension: JupyterFrontEndPlugin<void> = {
           })
           .catch(reason => {
             window.alert(
-              `Failed to load bookmarks from servers side during startup.\n${reason}`
+              `Failed to load bookmarks from server side during startup.\n${reason}`
             );
 
             console.error(
-              `Failed to load bookmarks from servers side during startup.\n${reason}`
+              `Failed to load bookmarks from server side during startup.\n${reason}`
             );
           });
       })
@@ -167,6 +167,9 @@ const extension: JupyterFrontEndPlugin<void> = {
         caption: commandId,
         icon: notebookIcon,
         execute: async () => {
+          if (disabled){
+            return window.alert(`This bookmark is currently unavailable.\nMake sure that ${bookmarkItem[2]} is accessible.`)
+          }
           return commands.execute('docmanager:open', {
             path: commandPath,
             factory: NOTEBOOK_FACTORY

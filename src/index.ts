@@ -197,7 +197,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     function syncBookmark(
       bookmarkedNotebookModel: DocumentRegistry.IContext<INotebookModel>,
       contentsModel: Contents.IModel
-    ) {
+    ): void {
       for (let i = 0; i < bookmarks.length; i++) {
         if (
           bookmarks[i][3].startsWith('.tmp') &&
@@ -229,7 +229,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     function addAutoSyncToBookmark(
       notebookTracker: INotebookTracker,
       notebookPanel: NotebookPanel
-    ) {
+    ): void {
       for (let i = 0; i < bookmarks.length; i++) {
         if (
           bookmarks[i][3].startsWith('.tmp') &&

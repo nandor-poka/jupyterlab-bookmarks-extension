@@ -95,18 +95,18 @@ const extension: JupyterFrontEndPlugin<void> = {
         loadSetting(settingsObject);
 
         // Listen for your plugin setting changes using Signal
-        settingsObject.changed.connect(loadSetting);
-
-        requestAPI<any>('startup', {
+        //settingsObject.changed.connect(loadSetting);
+        
+        requestAPI<any>('updateBookmarks', {
           method: 'POST',
           body: JSON.stringify({ bookmarksData: bookmarks })
         })
           .then(data => {
-            bookmarks = data.bookmarks;
+            bookmarks = data.bookmarks;            
             bookmarks.forEach(bookmarkItem => {
               addBookmark(bookmarkItem);
             });
-            //console.log(data);
+            settingsObject.set('bookmarks', bookmarks);
           })
           .catch(reason => {
             window.alert(
@@ -151,8 +151,10 @@ const extension: JupyterFrontEndPlugin<void> = {
     }
 
     function addBookmark(bookmarkItem: string[]): void {
+      console.log(bookmarkItem);
       const commandId: string = bookmarkItem[0];
-      const disabled = Boolean(bookmarkItem[4]);
+      const disabled = (bookmarkItem[4] === 'True');
+      console.log(disabled);
       if (commands.hasCommand(commandPrefix + commandId)) {
         const commandToDelete = bookmarkCommands.get(commandId);
         if (commandToDelete !== undefined) {
@@ -167,8 +169,12 @@ const extension: JupyterFrontEndPlugin<void> = {
         caption: commandId,
         icon: notebookIcon,
         execute: async () => {
-          if (disabled){
-            return window.alert(`This bookmark is currently unavailable.\nMake sure that ${bookmarkItem[2]} is accessible.`)
+          if (disabled) {
+            return window.alert(
+              `This bookmark is currently unavailable.\nMake sure that ${
+                bookmarkItem[2]
+              } is accessible.`
+            );
           }
           return commands.execute('docmanager:open', {
             path: commandPath,
@@ -179,7 +185,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       bookmarkCommands.set(commandId, commandDisposable);
       launcher.add({
         command: commandPrefix + commandId,
-        category: disabled ? TITLE + ' disabled bookmarks' : TITLE
+        category: disabled ? 'Disabled bookmarks' : TITLE
       });
       console.log(commandPrefix + commandId + ' added to Launcher');
     }

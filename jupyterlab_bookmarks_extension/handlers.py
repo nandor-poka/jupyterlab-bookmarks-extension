@@ -19,7 +19,7 @@ logger.propagate=False
 
 _bookmarks = None
 
-class StartupHandler(APIHandler):
+class UpdateBookmarksHandler(APIHandler):
     @property
     def contents_manager(self):
         'Currently configured notebook server ContentsManager.'
@@ -42,7 +42,7 @@ class StartupHandler(APIHandler):
                 disabled = False
                 bookmarkAbsPath = bookmark[2]
                 if not os.path.exists(os.path.join(self.root_dir, bookmarkPath)):
-                    logger.debug(f'{os.path.join(self.root_dir, bookmarkPath)} does not exist.')
+                    logger.debug(f'{os.path.join(self.root_dir, bookmarkPath)} does not exist. Bookmark not accessible from current JL root dir.')
                     # if we get here, then the current bookmark item is not accessible from the current JL root dir
                     # in this case we should make .tmp dir in current root and copy the bookmarked item
                     # and then use this path in the JL Launcher. Syncing back to the original file is important.
@@ -111,10 +111,11 @@ def setup_handlers(web_app):
     host_pattern = ".*$"
     
     base_url = web_app.settings["base_url"]
-    startup_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "startup")
+    update_bookmarks_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "updateBookmarks")
     getAbsPath_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "getAbsPath")
     handlers = [
-        (startup_pattern, StartupHandler),
+        (update_bookmarks_pattern, UpdateBookmarksHandler),
         (getAbsPath_pattern, getAbsPathHandler)
         ]
     web_app.add_handlers(host_pattern, handlers)
+    logger.info('JupyterLab Bookmarks extension has started.')

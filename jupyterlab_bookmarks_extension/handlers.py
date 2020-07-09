@@ -107,15 +107,32 @@ class getAbsPathHandler(APIHandler):
             'reason': reason
         }))
 
+class SyncBookmarkHandler(APIHandler):
+    @tornado.web.authenticated
+    def post(self):
+        bookmark = self.get_json_body()
+        try:
+            shutil.copy(bookmark[3], bookmark[2])
+            self.finish(json.dumps({
+                'success': True
+            }))
+        except Exception as ex:
+            self.finish(json.dumps({
+                'success': False,
+                'reason': str(ex)
+            }))
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
     
     base_url = web_app.settings["base_url"]
     update_bookmarks_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "updateBookmarks")
     getAbsPath_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "getAbsPath")
+    syncBookmark_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "syncBookmark")
     handlers = [
         (update_bookmarks_pattern, UpdateBookmarksHandler),
-        (getAbsPath_pattern, getAbsPathHandler)
+        (getAbsPath_pattern, getAbsPathHandler),
+        (syncBookmark_pattern, SyncBookmarkHandler)
         ]
     web_app.add_handlers(host_pattern, handlers)
     logger.info('JupyterLab Bookmarks extension has started.')

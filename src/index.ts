@@ -8,10 +8,13 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ILauncher } from '@jupyterlab/launcher';
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { INotebookTracker } from '@jupyterlab/notebook';
+import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { notebookIcon } from '@jupyterlab/ui-components';
 import { Menu } from '@lumino/widgets';
 import { IDisposable } from '@lumino/disposable';
+import { DocumentRegistry } from '@jupyterlab/docregistry';
+import { INotebookModel } from '@jupyterlab/notebook';
+import { Contents } from '@jupyterlab/services';
 
 const TITLE = 'Bookmarks';
 const NOTEBOOK_FACTORY = 'Notebook';
@@ -48,6 +51,7 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     // Extension level constants / variables
     const { commands } = app;
+
     const commandPrefix = 'jupyterlab-bookmarks-extension:';
     const bookmarksMainMenu = new Menu({ commands });
     bookmarksMainMenu.title.label = TITLE;
@@ -59,6 +63,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         caption: 'Add to bookmarks',
         execute: async (): Promise<any> => {
           const currentDoc = notebookTracker.currentWidget;
+          currentDoc.context.fileChanged.connect(syncBookmark);
           const currentDocName = currentDoc.context.contentsModel.name;
           const currentDocPath = currentDoc.context.path;
           const bookmarkItemJSON = await requestAPI<any>('getAbsPath', {
@@ -117,6 +122,7 @@ const extension: JupyterFrontEndPlugin<void> = {
               `Failed to load bookmarks from server side during startup.\n${reason}`
             );
           });
+        notebookTracker.currentChanged.connect(addAutoSyncToBookmark);
       })
       .catch(reason => {
         window.alert(
@@ -151,10 +157,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     }
 
     function addBookmark(bookmarkItem: string[]): void {
-      console.log(bookmarkItem);
       const commandId: string = bookmarkItem[0];
       const disabled = bookmarkItem[4] === 'True';
-      console.log(disabled);
       if (commands.hasCommand(commandPrefix + commandId)) {
         const commandToDelete = bookmarkCommands.get(commandId);
         if (commandToDelete !== undefined) {
@@ -188,6 +192,53 @@ const extension: JupyterFrontEndPlugin<void> = {
         category: disabled ? 'Disabled bookmarks' : TITLE
       });
       console.log(commandPrefix + commandId + ' added to Launcher');
+    }
+
+    function syncBookmark(
+      bookmarkedNotebookModel: DocumentRegistry.IContext<INotebookModel>,
+      contentsModel: Contents.IModel
+    ) {
+      for (let i = 0; i < bookmarks.length; i++) {
+        if (
+          bookmarks[i][3].startsWith('.tmp') &&
+          bookmarks[i][3] === bookmarkedNotebookModel.path
+        ) {
+          requestAPI<any>('syncBookmark', {
+            method: 'POST',
+            body: JSON.stringify(bookmarks[i])
+          })
+            .then(result => {
+              if (!result.success) {
+                window.alert(
+                  `Failed to set up autosync for ${bookmarks[i]}.\n${
+                    result.reason
+                  }`
+                );
+              }
+            })
+            .catch(error => {
+              window.alert(
+                `Failed to set up autosync for ${bookmarks[i][0]}.\n${error}`
+              );
+            });
+          break;
+        }
+      }
+    }
+
+    function addAutoSyncToBookmark(
+      notebookTracker: INotebookTracker,
+      notebookPanel: NotebookPanel
+    ) {
+      for (let i = 0; i < bookmarks.length; i++) {
+        if (
+          bookmarks[i][3].startsWith('.tmp') &&
+          bookmarks[i][3] === notebookPanel.context.path
+        ) {
+          notebookPanel.context.fileChanged.connect(syncBookmark);
+          break;
+        }
+      }
     }
   }
 };

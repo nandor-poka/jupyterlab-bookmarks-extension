@@ -5,7 +5,7 @@ import {
 
 import { requestAPI } from './jupyterlab-bookmarks-extension';
 import { IMainMenu } from '@jupyterlab/mainmenu';
-import { ILauncher } from '@jupyterlab/launcher';
+import { ILauncher, LauncherModel} from '@jupyterlab/launcher';
 import { ICommandPalette } from '@jupyterlab/apputils';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
@@ -25,6 +25,10 @@ const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
 let bookmarks: Array<Array<string>> = new Array<Array<string>>();
 let settingsObject: ISettingRegistry.ISettings = null;
 const bookmarkCommands: Map<string, IDisposable> = new Map<
+  string,
+  IDisposable
+>();
+const bookmakrLaunchers: Map<string, IDisposable> = new Map<
   string,
   IDisposable
 >();
@@ -56,8 +60,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     const bookmarksMainMenu = new Menu({ commands });
     bookmarksMainMenu.title.label = TITLE;
     mainMenu.addMenu(bookmarksMainMenu);
-    const addFavoriteCommand = {
-      id: commandPrefix + 'addFavorite',
+    const addBookmarkCommand = {
+      id: commandPrefix + 'addBookmark',
       options: {
         label: 'Add to bookmarks',
         caption: 'Add to bookmarks',
@@ -86,6 +90,22 @@ const extension: JupyterFrontEndPlugin<void> = {
             );
           }
           await settingsObject.set('bookmarks', bookmarks);
+        }
+      }
+    };
+    const removeBookmarkCommand = {
+      id: commandPrefix + 'removeBookmark',
+      options:{
+        label: 'Delete Bookmark',
+        caption: 'Delete Bookmark',
+        execute: () =>{
+          let launcherModel = new LauncherModel();
+          let launcherItemIterator = launcherModel.items();
+          let launcherItem;
+          while ( (launcherItem = launcherItemIterator.next)!= undefined){
+            
+          }
+          console.log('removed bookmark')
         }
       }
     };
@@ -134,13 +154,19 @@ const extension: JupyterFrontEndPlugin<void> = {
       });
 
     // Add command to context menu, when clicked on an open notebook.
-    commands.addCommand(addFavoriteCommand.id, addFavoriteCommand.options);
+    commands.addCommand(addBookmarkCommand.id, addBookmarkCommand.options);
+    commands.addCommand(removeBookmarkCommand.id, removeBookmarkCommand.options);
     app.contextMenu.addItem({
-      command: addFavoriteCommand.id,
+      command: addBookmarkCommand.id,
       selector: '.jp-Notebook',
       rank: 10
     });
 
+    app.contextMenu.addItem({
+      command: addBookmarkCommand.id,
+      selector: '.jp-Notebook',
+      rank: 10
+    });
     console.log(
       'JupyterLab extension jupyterlab-bookmarks-extension is activated!'
     );

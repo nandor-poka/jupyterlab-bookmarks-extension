@@ -8,14 +8,18 @@ import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ILauncher } from '@jupyterlab/launcher';
 import { ICommandPalette, InputDialog } from '@jupyterlab/apputils';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
-import { INotebookTracker, NotebookPanel, INotebookModel} from '@jupyterlab/notebook';
+import {
+  INotebookTracker,
+  NotebookPanel,
+  INotebookModel
+} from '@jupyterlab/notebook';
 import { notebookIcon, closeIcon, addIcon } from '@jupyterlab/ui-components';
 import { Menu } from '@lumino/widgets';
 import { IDisposable } from '@lumino/disposable';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { FileDialog } from '@jupyterlab/filebrowser';
-import { IDocumentManager } from '@jupyterlab/docmanager'
+import { IDocumentManager } from '@jupyterlab/docmanager';
 const TITLE = 'Bookmarks';
 const NOTEBOOK_FACTORY = 'Notebook';
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
@@ -79,24 +83,23 @@ const extension: JupyterFrontEndPlugin<void> = {
     };
 
     const addBookmarkLauncherCommand = {
-      id:commandPrefix+'addBookmarkFromLauncher',
-      options:{
+      id: commandPrefix + 'addBookmarkFromLauncher',
+      options: {
         label: 'Add bookmark',
         caption: 'Add bookmark',
         icon: addIcon,
-        execute: () => {
+        execute: (): void => {
           FileDialog.getOpenFiles({
             manager: docManager,
-            filter: model => model.type == 'notebook'
-          }).then(result =>{
+            filter: model => model.type === 'notebook'
+          }).then(result => {
             result.value.forEach(selectedFile => {
               addBookmarkItem(selectedFile.name, selectedFile.path);
             });
-            
-          })
+          });
         }
       }
-    }
+    };
     const removeBookmarkCommand = {
       id: commandPrefix + 'removeBookmark',
       options: {
@@ -109,17 +112,19 @@ const extension: JupyterFrontEndPlugin<void> = {
             items: Array.from(bookmakrLaunchers, item => {
               return item[0];
             })
-          }).then( async (result) => {
+          }).then(async result => {
             if (result.value !== null && result.value !== '') {
               const bookmarkToDelete: string = result.value;
               bookmakrLaunchers.get(bookmarkToDelete).dispose();
               bookmakrLaunchers.delete(bookmarkToDelete);
               bookmarkCommands.get(bookmarkToDelete).dispose();
               bookmarkCommands.delete(bookmarkToDelete);
-              let updatedBookmarks: Array<Array<string>> = new Array<Array<string>>();
-              bookmarks.forEach(bookmarkItem =>{
-                if(bookmarkItem[0] !== bookmarkToDelete){
-                  updatedBookmarks.push(bookmarkItem)
+              const updatedBookmarks: Array<Array<string>> = new Array<
+                Array<string>
+              >();
+              bookmarks.forEach(bookmarkItem => {
+                if (bookmarkItem[0] !== bookmarkToDelete) {
+                  updatedBookmarks.push(bookmarkItem);
                 }
               });
               bookmarks = updatedBookmarks;
@@ -174,9 +179,18 @@ const extension: JupyterFrontEndPlugin<void> = {
       });
 
     // Add command to context menu, when clicked on an open notebook.
-    commands.addCommand(addBookmarkContextMenuCommand.id, addBookmarkContextMenuCommand.options);
-    commands.addCommand(removeBookmarkCommand.id,removeBookmarkCommand.options);
-    commands.addCommand(addBookmarkLauncherCommand.id, addBookmarkLauncherCommand.options);
+    commands.addCommand(
+      addBookmarkContextMenuCommand.id,
+      addBookmarkContextMenuCommand.options
+    );
+    commands.addCommand(
+      removeBookmarkCommand.id,
+      removeBookmarkCommand.options
+    );
+    commands.addCommand(
+      addBookmarkLauncherCommand.id,
+      addBookmarkLauncherCommand.options
+    );
     app.contextMenu.addItem({
       command: addBookmarkContextMenuCommand.id,
       selector: '.jp-Notebook',
@@ -247,25 +261,20 @@ const extension: JupyterFrontEndPlugin<void> = {
       console.log(commandPrefix + commandId + ' added to Launcher');
     }
 
-    async function addBookmarkItem(currentDocName:string, currentDocPath:string):Promise<void>{
+    async function addBookmarkItem(
+      currentDocName: string,
+      currentDocPath: string
+    ): Promise<void> {
       const bookmarkItemJSON = await requestAPI<any>('getAbsPath', {
         method: 'POST',
-        body: JSON.stringify([
-          currentDocName,
-          currentDocPath,
-          '',
-          '',
-          'False'
-        ])
+        body: JSON.stringify([currentDocName, currentDocPath, '', '', 'False'])
       });
       if (!bookmarkItemJSON.error) {
         const bookmarkItem = bookmarkItemJSON.bookmarkItem;
         bookmarks.push(bookmarkItem);
         addBookmark(bookmarkItem);
       } else {
-        window.alert(
-          `Failed to save bookmark.\n${bookmarkItemJSON.reason}`
-        );
+        window.alert(`Failed to save bookmark.\n${bookmarkItemJSON.reason}`);
       }
       await settingsObject.set('bookmarks', bookmarks);
     }

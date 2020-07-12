@@ -5,8 +5,8 @@ import {
 
 import { requestAPI } from './jupyterlab-bookmarks-extension';
 import { IMainMenu } from '@jupyterlab/mainmenu';
-import { ILauncher, LauncherModel} from '@jupyterlab/launcher';
-import { ICommandPalette } from '@jupyterlab/apputils';
+import { ILauncher } from '@jupyterlab/launcher';
+import { ICommandPalette, InputDialog } from '@jupyterlab/apputils';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { INotebookTracker, NotebookPanel } from '@jupyterlab/notebook';
 import { notebookIcon } from '@jupyterlab/ui-components';
@@ -19,6 +19,7 @@ import { Contents } from '@jupyterlab/services';
 const TITLE = 'Bookmarks';
 const NOTEBOOK_FACTORY = 'Notebook';
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
+
 /**
  * Data structure is Array of arrays => [[name, path in current JL root, absolute_path, temp_path, disabled]]
  */
@@ -55,10 +56,10 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     // Extension level constants / variables
     const { commands } = app;
-
     const commandPrefix = 'jupyterlab-bookmarks-extension:';
     const bookmarksMainMenu = new Menu({ commands });
     bookmarksMainMenu.title.label = TITLE;
+
     mainMenu.addMenu(bookmarksMainMenu);
     const addBookmarkCommand = {
       id: commandPrefix + 'addBookmark',
@@ -95,17 +96,24 @@ const extension: JupyterFrontEndPlugin<void> = {
     };
     const removeBookmarkCommand = {
       id: commandPrefix + 'removeBookmark',
-      options:{
+      options: {
         label: 'Delete Bookmark',
         caption: 'Delete Bookmark',
-        execute: () =>{
-          let launcherModel = new LauncherModel();
-          let launcherItemIterator = launcherModel.items();
-          let launcherItem;
-          while ( (launcherItem = launcherItemIterator.next)!= undefined){
-            
-          }
-          console.log('removed bookmark')
+        execute: (): void => {
+          InputDialog.getItem({
+            title: 'Select bookmark to delete',
+            items: Array.from(bookmakrLaunchers, item => {
+              return item[0];
+            })
+          }).then(result => {
+            if (result.value !== null || result.value !== '') {
+              const bookmarkToDelete: string = result.value;
+              bookmakrLaunchers.get(bookmarkToDelete).dispose();
+              bookmakrLaunchers.delete(bookmarkToDelete);
+              bookmarkCommands.get(bookmarkToDelete).dispose();
+              bookmarkCommands.delete(bookmarkToDelete);
+            }
+          });
         }
       }
     };
@@ -155,17 +163,20 @@ const extension: JupyterFrontEndPlugin<void> = {
 
     // Add command to context menu, when clicked on an open notebook.
     commands.addCommand(addBookmarkCommand.id, addBookmarkCommand.options);
-    commands.addCommand(removeBookmarkCommand.id, removeBookmarkCommand.options);
+    commands.addCommand(
+      removeBookmarkCommand.id,
+      removeBookmarkCommand.options
+    );
     app.contextMenu.addItem({
       command: addBookmarkCommand.id,
       selector: '.jp-Notebook',
       rank: 10
     });
 
-    app.contextMenu.addItem({
-      command: addBookmarkCommand.id,
-      selector: '.jp-Notebook',
-      rank: 10
+    launcher.add({
+      command: removeBookmarkCommand.id,
+      category: TITLE,
+      rank: 1
     });
     console.log(
       'JupyterLab extension jupyterlab-bookmarks-extension is activated!'
@@ -213,10 +224,11 @@ const extension: JupyterFrontEndPlugin<void> = {
         }
       });
       bookmarkCommands.set(commandId, commandDisposable);
-      launcher.add({
+      const launcherItem: IDisposable = launcher.add({
         command: commandPrefix + commandId,
         category: disabled ? 'Disabled bookmarks' : TITLE
       });
+      bookmakrLaunchers.set(commandId, launcherItem);
       console.log(commandPrefix + commandId + ' added to Launcher');
     }
 

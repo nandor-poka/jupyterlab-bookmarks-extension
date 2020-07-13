@@ -20,7 +20,9 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { FileDialog } from '@jupyterlab/filebrowser';
 import { IDocumentManager } from '@jupyterlab/docmanager';
-const TITLE = 'Bookmarks';
+const VERSION = '0.3.0';
+const TITLE = `Bookmarks - ${VERSION}`;
+const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`
 const NOTEBOOK_FACTORY = 'Notebook';
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
 
@@ -255,7 +257,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       bookmarkCommands.set(commandId, commandDisposable);
       const launcherItem: IDisposable = launcher.add({
         command: commandPrefix + commandId,
-        category: disabled ? 'Disabled bookmarks' : TITLE
+        category: disabled ? DISABLED_TITLE : TITLE
       });
       bookmakrLaunchers.set(commandId, launcherItem);
       console.log(commandPrefix + commandId + ' added to Launcher');

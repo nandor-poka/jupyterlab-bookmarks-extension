@@ -21,8 +21,9 @@ import { Contents } from '@jupyterlab/services';
 import { FileDialog } from '@jupyterlab/filebrowser';
 import { IDocumentManager } from '@jupyterlab/docmanager';
 const VERSION = '0.3.0';
-const TITLE = `Bookmarks - ${VERSION}`;
-const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`
+const TITLE_PLAIN = 'Bookmarks';
+const TITLE = `${TITLE_PLAIN} - ${VERSION}`;
+const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`;
 const NOTEBOOK_FACTORY = 'Notebook';
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
 
@@ -35,9 +36,14 @@ const bookmarkCommands: Map<string, IDisposable> = new Map<
   string,
   IDisposable
 >();
-const bookmakrLaunchers: Map<string, IDisposable> = new Map<
+const bookmarkLaunchers: Map<string, IDisposable> = new Map<
   string,
   IDisposable
+>();
+
+const bookmarkMenuItems: Map<string, Menu.IItem> = new Map<
+  string,
+  Menu.IItem
 >();
 /**
  * Initialization data for the jupyterlab-bookmarks-extension extension.
@@ -66,9 +72,9 @@ const extension: JupyterFrontEndPlugin<void> = {
     const { commands } = app;
     const commandPrefix = 'jupyterlab-bookmarks-extension:';
     const bookmarksMainMenu = new Menu({ commands });
-    bookmarksMainMenu.title.label = TITLE;
-
+    bookmarksMainMenu.title.label = TITLE_PLAIN;
     mainMenu.addMenu(bookmarksMainMenu);
+
     const addBookmarkContextMenuCommand = {
       id: commandPrefix + 'addBookmark',
       options: {
@@ -102,6 +108,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         }
       }
     };
+
     const removeBookmarkCommand = {
       id: commandPrefix + 'removeBookmark',
       options: {
@@ -111,16 +118,20 @@ const extension: JupyterFrontEndPlugin<void> = {
         execute: (): void => {
           InputDialog.getItem({
             title: 'Select bookmark to delete',
-            items: Array.from(bookmakrLaunchers, item => {
+            items: Array.from(bookmarkLaunchers, item => {
               return item[0];
             })
           }).then(async result => {
             if (result.value !== null && result.value !== '') {
               const bookmarkToDelete: string = result.value;
-              bookmakrLaunchers.get(bookmarkToDelete).dispose();
-              bookmakrLaunchers.delete(bookmarkToDelete);
+              bookmarkLaunchers.get(bookmarkToDelete).dispose();
+              bookmarkLaunchers.delete(bookmarkToDelete);
               bookmarkCommands.get(bookmarkToDelete).dispose();
               bookmarkCommands.delete(bookmarkToDelete);
+              bookmarksMainMenu.removeItem(
+                bookmarkMenuItems.get(bookmarkToDelete)
+              );
+              bookmarkMenuItems.delete(bookmarkToDelete);
               const updatedBookmarks: Array<Array<string>> = new Array<
                 Array<string>
               >();
@@ -137,6 +148,17 @@ const extension: JupyterFrontEndPlugin<void> = {
       }
     };
 
+    bookmarksMainMenu.addItem({
+      type: 'command',
+      command: addBookmarkLauncherCommand.id
+    });
+    bookmarksMainMenu.addItem({
+      type: 'command',
+      command: removeBookmarkCommand.id
+    });
+    bookmarksMainMenu.addItem({
+      type: 'separator'
+    });
     // Code for startup
     // Wait for the application to be restored and
     // for the settings for this plugin to be loaded
@@ -259,7 +281,14 @@ const extension: JupyterFrontEndPlugin<void> = {
         command: commandPrefix + commandId,
         category: disabled ? DISABLED_TITLE : TITLE
       });
-      bookmakrLaunchers.set(commandId, launcherItem);
+      bookmarkLaunchers.set(commandId, launcherItem);
+
+      const bookmarkMenuItem = bookmarksMainMenu.addItem({
+        type: 'command',
+        command: commandPrefix + commandId
+      });
+      bookmarkMenuItems.set(commandId, bookmarkMenuItem);
+
       console.log(commandPrefix + commandId + ' added to Launcher');
     }
 

@@ -6,7 +6,7 @@ import {
 import { requestAPI } from './jupyterlab-bookmarks-extension';
 import { IMainMenu } from '@jupyterlab/mainmenu';
 import { ILauncher } from '@jupyterlab/launcher';
-import { ICommandPalette, InputDialog } from '@jupyterlab/apputils';
+import { ICommandPalette, InputDialog, showErrorMessage } from '@jupyterlab/apputils';
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import {
   INotebookTracker,
@@ -82,6 +82,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         caption: 'Add to bookmarks',
         execute: async (): Promise<any> => {
           const currentDoc = notebookTracker.currentWidget;
+          console.log(currentDoc);
           currentDoc.context.fileChanged.connect(syncBookmark);
           const currentDocName = currentDoc.context.contentsModel.name;
           const currentDocPath = currentDoc.context.path;
@@ -122,26 +123,9 @@ const extension: JupyterFrontEndPlugin<void> = {
               return item[0];
             })
           }).then(async result => {
-            if (result.value !== null && result.value !== '') {
-              const bookmarkToDelete: string = result.value;
-              bookmarkLaunchers.get(bookmarkToDelete).dispose();
-              bookmarkLaunchers.delete(bookmarkToDelete);
-              bookmarkCommands.get(bookmarkToDelete).dispose();
-              bookmarkCommands.delete(bookmarkToDelete);
-              bookmarksMainMenu.removeItem(
-                bookmarkMenuItems.get(bookmarkToDelete)
-              );
-              bookmarkMenuItems.delete(bookmarkToDelete);
-              const updatedBookmarks: Array<Array<string>> = new Array<
-                Array<string>
-              >();
-              bookmarks.forEach(bookmarkItem => {
-                if (bookmarkItem[0] !== bookmarkToDelete) {
-                  updatedBookmarks.push(bookmarkItem);
-                }
-              });
-              bookmarks = updatedBookmarks;
-              await settingsObject.set('bookmarks', bookmarks);
+            if (result.button.label !== 'Cancel') {
+              let bookmarkToDelete: string = result.value;
+              deleteBookmark(bookmarkToDelete);
             }
           });
         }
@@ -178,7 +162,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           .then(data => {
             bookmarks = data.bookmarks;
             bookmarks.forEach(bookmarkItem => {
-              addBookmark(bookmarkItem);
+              addBookmark(bookmarkItem,true);
             });
             settingsObject.set('bookmarks', bookmarks);
           })
@@ -246,7 +230,76 @@ const extension: JupyterFrontEndPlugin<void> = {
       bookmarks = settings.get('bookmarks').composite as Array<Array<string>>;
     }
 
-    function addBookmark(bookmarkItem: string[]): void {
+    /** Adds a `bookmarkItem`, to the `commands` list, to the Launcher and to the Bookmarks menu.
+     * @param bookmarkItem - `string[]`. The bookmarkItem to be added.
+     * @param skipDuplicateCheck - `boolean`. Optional parameter to skip or not to skip
+     * duplicate check.
+     * @returns `boolean`
+      */
+    function addBookmark(bookmarkItem: string[], skipDuplicateCheck?:boolean): boolean {
+      if(!skipDuplicateCheck){
+        let bookmarkName = bookmarkItem[0];
+        let bookmarkAbsPath = bookmarkItem[2];
+        for (let i=0;i<bookmarks.length;i++){
+          let currentBookmark = bookmarks[i]
+          if(bookmarkName === currentBookmark[0]){
+            /* we have an incoming bookmark with an existing name
+               we check if the absolute paths are the same. if yes then the two items are identical,
+               and we don't save it as it already exists we just propt the user.
+               if the abs paths are not the same we ask the user it should be saved with as a separate item 
+               or the existing entry should be updated
+            */
+            if(bookmarkAbsPath === currentBookmark[2]){
+              //these are identical.
+              showErrorMessage(
+                'Duplicate entry',
+                'The bookmark already exists. Not saving.',
+              );
+              return false;
+            }
+            InputDialog.getItem({
+              title: `Bookmark with name: ${bookmarkName} already exists. What would you like to do?`,
+              items: ['Overwrite', 'Save as new']
+            }).then(result =>{
+              if(result.button.label === 'Cancel'){
+                return false;
+              }
+              if (result.value === 'Overwrite'){
+                // we delete the old entry and save it as new.
+                deleteBookmark(bookmarkName);
+                updateCommands(bookmarkItem);
+                updateLauncher(bookmarkItem);
+                updateMenu(bookmarkItem);
+                return true;
+              }
+              if (result.value === 'Save as new'){
+                // we append a (1), (2) etc after it
+                let numberOfCopies = 0;
+                bookmarks.forEach(item =>{
+                  if(item[2].split('/').slice(-1)[0] === bookmarkItem[2].split('/').slice(-1)[0]){
+                    numberOfCopies++;
+                  }
+                });
+                bookmarkItem[0] = `${bookmarkItem[0].split('.')[0]}_(${numberOfCopies}).${bookmarkItem[0].split('.')[1]}`
+                updateCommands(bookmarkItem);
+                updateLauncher(bookmarkItem);
+                updateMenu(bookmarkItem);
+                return true;
+              }
+            });
+          }
+        }
+      }
+      // if duplicate check is false or no duplicate found we just save as is.
+      updateCommands(bookmarkItem);
+      updateLauncher(bookmarkItem);
+      updateMenu(bookmarkItem);
+      bookmarks.push(bookmarkItem);
+      console.log(commandPrefix + bookmarkItem[0] + ' added to Launcher');
+      return true;
+    }
+
+    function updateCommands(bookmarkItem:string[]){
       const commandId: string = bookmarkItem[0];
       const disabled = bookmarkItem[4] === 'True';
       if (commands.hasCommand(commandPrefix + commandId)) {
@@ -277,21 +330,48 @@ const extension: JupyterFrontEndPlugin<void> = {
         }
       });
       bookmarkCommands.set(commandId, commandDisposable);
+    }
+
+    function updateLauncher(bookmarkItem:string[]){
+      const commandId: string = bookmarkItem[0];
+      const disabled = bookmarkItem[4] === 'True';
       const launcherItem: IDisposable = launcher.add({
         command: commandPrefix + commandId,
         category: disabled ? DISABLED_TITLE : TITLE
       });
       bookmarkLaunchers.set(commandId, launcherItem);
+    }
 
+    function updateMenu(bookmarkItem:string[]){
+      const commandId: string = bookmarkItem[0];
+      //const disabled = bookmarkItem[4] === 'True';
       const bookmarkMenuItem = bookmarksMainMenu.addItem({
         type: 'command',
         command: commandPrefix + commandId
       });
       bookmarkMenuItems.set(commandId, bookmarkMenuItem);
-
-      console.log(commandPrefix + commandId + ' added to Launcher');
     }
 
+    async function deleteBookmark(bookmarkToDelete:string){
+      bookmarkLaunchers.get(bookmarkToDelete).dispose();
+      bookmarkLaunchers.delete(bookmarkToDelete);
+      bookmarkCommands.get(bookmarkToDelete).dispose();
+      bookmarkCommands.delete(bookmarkToDelete);
+      bookmarksMainMenu.removeItem(
+        bookmarkMenuItems.get(bookmarkToDelete)
+      );
+      bookmarkMenuItems.delete(bookmarkToDelete);
+      const updatedBookmarks: Array<Array<string>> = new Array<
+        Array<string>
+      >();
+      bookmarks.forEach(bookmarkItem => {
+        if (bookmarkItem[0] !== bookmarkToDelete) {
+          updatedBookmarks.push(bookmarkItem);
+        }
+      });
+      bookmarks = updatedBookmarks;
+      await settingsObject.set('bookmarks', bookmarks);
+    }
     async function addBookmarkItem(
       currentDocName: string,
       currentDocPath: string
@@ -302,7 +382,6 @@ const extension: JupyterFrontEndPlugin<void> = {
       });
       if (!bookmarkItemJSON.error) {
         const bookmarkItem = bookmarkItemJSON.bookmarkItem;
-        bookmarks.push(bookmarkItem);
         addBookmark(bookmarkItem);
       } else {
         window.alert(`Failed to save bookmark.\n${bookmarkItemJSON.reason}`);
@@ -356,6 +435,7 @@ const extension: JupyterFrontEndPlugin<void> = {
         }
       }
     }
+
   }
 };
 

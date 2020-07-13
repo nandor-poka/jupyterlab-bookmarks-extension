@@ -20,7 +20,7 @@ import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { Contents } from '@jupyterlab/services';
 import { FileDialog } from '@jupyterlab/filebrowser';
 import { IDocumentManager } from '@jupyterlab/docmanager';
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 const TITLE_PLAIN = 'Bookmarks';
 const TITLE = `${TITLE_PLAIN} - ${VERSION}`;
 const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`;

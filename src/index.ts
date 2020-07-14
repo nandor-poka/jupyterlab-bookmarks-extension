@@ -374,7 +374,7 @@ const extension: JupyterFrontEndPlugin<void> = {
       bookmarkMenuItems.set(commandId, bookmarkMenuItem);
     }
 
-    async function deleteBookmark(bookmarkToDelete: string): void {
+    async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
       bookmarkLaunchers.get(bookmarkToDelete).dispose();
       bookmarkLaunchers.delete(bookmarkToDelete);
       bookmarkCommands.get(bookmarkToDelete).dispose();

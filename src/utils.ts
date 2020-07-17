@@ -23,7 +23,7 @@ import { getBookmarksMainMenu } from './menus';
 
 //Global vars and exports
 export const commandPrefix = 'jupyterlab-bookmarks-extension:';
-export const VERSION = '0.5.2';
+export const VERSION = '0.5.3';
 export const TITLE_PLAIN = 'Bookmarks';
 export const TITLE = `${TITLE_PLAIN} - ${VERSION}`;
 export const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`;
@@ -125,7 +125,6 @@ export async function addBookmark(
               updateLauncher(launcher, bookmarkItem);
               updateMenu(bookmarkItem);
               updateSettings(bookmarkItem);
-              console.log(commandPrefix + bookmarkItem[0] + ' was overwritten');
               return true;
             }
 
@@ -147,9 +146,6 @@ export async function addBookmark(
               updateLauncher(launcher, bookmarkItem);
               updateMenu(bookmarkItem);
               updateSettings(bookmarkItem);
-              console.log(
-                commandPrefix + bookmarkItem[0] + ' added to Launcher'
-              );
               return true;
             }
           }
@@ -162,7 +158,6 @@ export async function addBookmark(
   updateLauncher(launcher, bookmarkItem);
   updateMenu(bookmarkItem);
   updateSettings(bookmarkItem);
-  console.log(commandPrefix + bookmarkItem[0] + ' added to Launcher');
   return true;
 }
 
@@ -263,7 +258,6 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
   });
   bookmarks = updatedBookmarks;
   await settingsObject.set('bookmarks', bookmarks);
-  console.log(`${bookmarkToDelete} has been deleted.`);
 }
 
 /**

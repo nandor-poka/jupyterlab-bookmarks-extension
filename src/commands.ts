@@ -45,7 +45,6 @@ export const addBookmarkContextMenuCommand = {
     caption: 'Add to bookmarks',
     execute: async (): Promise<any> => {
       const currentDoc = notebookTracker.currentWidget;
-      console.log(currentDoc);
       currentDoc.context.fileChanged.connect(syncBookmark);
       const currentDocName = currentDoc.context.contentsModel.name;
       const currentDocPath = currentDoc.context.path;

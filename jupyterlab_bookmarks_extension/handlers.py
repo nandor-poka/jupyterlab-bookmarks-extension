@@ -34,7 +34,7 @@ class UpdateBookmarksHandler(APIHandler):
     def post(self):
         try:
             data = self.get_json_body()
-            """Data structure is Array of arrays => [[0:name, 1:path in current JL root, 2:absolute_path, 3:temp_path, 4:<disabled]]"""
+            # Data structure is Array of arrays => [[0:name, 1:path in current JL root, 2:absolute_path, 3:temp_path, 4:<disabled]]
             bookmarks = data["bookmarksData"]
             for bookmark in bookmarks:
                 logger.debug(bookmark)
@@ -45,8 +45,7 @@ class UpdateBookmarksHandler(APIHandler):
                     logger.debug(f'{os.path.join(self.root_dir, bookmarkPath)} does not exist. Bookmark not accessible from current JL root dir.')
                     # if we get here, then the current bookmark item is not accessible from the current JL root dir
                     # in this case we should make .tmp dir in current root and copy the bookmarked item
-                    # and then use this path in the JL Launcher. Syncing back to the original file is important.
-                    
+                    # and then use this path in the JL Launcher. Syncing back to the original file is important.                    
                     if not os.path.exists(bookmarkAbsPath):
                         logger.debug(f'{bookmarkAbsPath} does not exist.')
                         disabled = True

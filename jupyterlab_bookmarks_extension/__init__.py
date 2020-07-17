@@ -10,8 +10,8 @@ def _jupyter_server_extension_paths():
 
 
 def load_jupyter_server_extension(lab_app):
-    """
-    Registers the API handler to receive HTTP requests from the frontend extension.
+    
+    """ Registers the API handler to receive HTTP requests from the frontend extension.
 
     Parameters
     ----------

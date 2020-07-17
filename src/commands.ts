@@ -63,9 +63,9 @@ export const addBookmarkLauncherCommand = {
     execute: (): void => {
       FileDialog.getOpenFiles({
         manager: docManager,
-        filter: model => model.type === 'notebook'
-      }).then(result => {
-        result.value.forEach(selectedFile => {
+        filter: (model) => model.type === 'notebook'
+      }).then((result) => {
+        result.value.forEach((selectedFile) => {
           addBookmarkItem(
             commands,
             launcher,
@@ -87,10 +87,10 @@ export const removeBookmarkCommand = {
     execute: (): void => {
       InputDialog.getItem({
         title: 'Select bookmark to delete',
-        items: Array.from(bookmarkLaunchers, item => {
+        items: Array.from(bookmarkLaunchers, (item) => {
           return item[0];
         })
-      }).then(async result => {
+      }).then(async (result) => {
         if (result.button.label !== 'Cancel') {
           const bookmarkToDelete: string = result.value;
           deleteBookmark(bookmarkToDelete);

@@ -4,15 +4,13 @@
 
 A JupyterLab extension to provide Launcher icons for favorites. Allows bookmarking files for quick access from the Launcher.
 
-
 This extension is composed of a Python package named `jupyterlab_bookmarks_extension`
 for the server extension and a NPM package named `jupyterlab-bookmarks-extension`
 for the frontend extension.
 
-
 ## Requirements
 
-* JupyterLab >= 2.0
+  * JupyterLab >= 2.0
 
 ## Install
 
@@ -48,7 +46,7 @@ jupyter lab build
 
 ## Contributing
 
-### Install
+### Install for development
 
 The `jlpm` command is JupyterLab's pinned version of
 [yarn](https://yarnpkg.com/) that is installed with JupyterLab. You may use

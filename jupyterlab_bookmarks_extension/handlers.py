@@ -22,19 +22,19 @@ _bookmarks = None
 class UpdateBookmarksHandler(APIHandler):
     @property
     def contents_manager(self):
-        'Currently configured notebook server ContentsManager.'
+        """Currently configured notebook server ContentsManager."""
         return self.settings['contents_manager']
 
     @property
     def root_dir(self):
-        'Root directory to scan.'
+        """Root directory to scan."""
         return self.contents_manager.root_dir
-        
+
     @tornado.web.authenticated
     def post(self):
         try:
             data = self.get_json_body()
-            # Data structure is Array of arrays => [[0:name, 1:path in current JL root, 2:absolute_path, 3:temp_path, 4:<disabled]]
+            """Data structure is Array of arrays => [[0:name, 1:path in current JL root, 2:absolute_path, 3:temp_path, 4:<disabled]]"""
             bookmarks = data["bookmarksData"]
             for bookmark in bookmarks:
                 logger.debug(bookmark)
@@ -65,7 +65,7 @@ class UpdateBookmarksHandler(APIHandler):
                     else:
                         # we leave paths JL root path and abs path as is and set temp_path to empty
                         bookmark[3]='' #index 3
-                    # finally we set 
+                    # finally we set
                     bookmark[4] = str(disabled) # index 4
                 else:
                     # In this case the bookmark is accessible directly from current JL root.
@@ -74,7 +74,7 @@ class UpdateBookmarksHandler(APIHandler):
                     bookmark[3] = bookmark[1]
                     bookmark[4] = str(False) # index 4
                 logger.debug(bookmark)
-            _bookmarks = bookmarks  
+            _bookmarks = bookmarks
             self.finish(
                 json.dumps({
                     'bookmarks':_bookmarks

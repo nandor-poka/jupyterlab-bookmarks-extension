@@ -1,6 +1,4 @@
-"""
-Setup Module to setup Python Handlers for the jupyterlab-favorites-extension extension.
-"""
+"""Setup Module to setup Python Handlers for the jupyterlab-favorites-extension extension."""
 import os
 
 from jupyter_packaging import (
@@ -39,7 +37,7 @@ data_files_spec = [
      "jupyter-config", "jupyterlab_bookmarks_extension.json"),
 ]
 
-cmdclass = create_cmdclass("jsdeps", 
+cmdclass = create_cmdclass("jsdeps",
     package_data_spec=package_data_spec,
     data_files_spec=data_files_spec
 )

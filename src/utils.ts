@@ -132,7 +132,7 @@ export async function addBookmark(
             if (result.value === 'Save as new') {
               // we append a (1), (2) etc after it
               let numberOfCopies = 0;
-              bookmarks.forEach((item) => {
+              bookmarks.forEach(item => {
                 if (
                   item[2].split('/').slice(-1)[0] ===
                   bookmarkItem[2].split('/').slice(-1)[0]
@@ -256,7 +256,7 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
   getBookmarksMainMenu().removeItem(bookmarkMenuItems.get(bookmarkToDelete));
   bookmarkMenuItems.delete(bookmarkToDelete);
   const updatedBookmarks: Array<Array<string>> = new Array<Array<string>>();
-  bookmarks.forEach((bookmarkItem) => {
+  bookmarks.forEach(bookmarkItem => {
     if (bookmarkItem[0] !== bookmarkToDelete) {
       updatedBookmarks.push(bookmarkItem);
     }
@@ -322,14 +322,14 @@ export function syncBookmark(
         method: 'POST',
         body: JSON.stringify(bookmarks[i])
       })
-        .then((result) => {
+        .then(result => {
           if (!result.success) {
             window.alert(
               `Failed to autosync for ${bookmarks[i]}.\n${result.reason}`
             );
           }
         })
-        .catch((error) => {
+        .catch(error => {
           window.alert(`Failed to autosync for ${bookmarks[i][0]}.\n${error}`);
         });
       break;

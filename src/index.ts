@@ -93,13 +93,13 @@ const extension: JupyterFrontEndPlugin<void> = {
           method: 'POST',
           body: JSON.stringify({ bookmarksData: getBookmarks() })
         })
-          .then((data) => {
+          .then(data => {
             setBookmarks(data.bookmarks);
-            getBookmarks().forEach((bookmarkItem) => {
+            getBookmarks().forEach(bookmarkItem => {
               addBookmark(commands, launcher, bookmarkItem, true);
             });
           })
-          .catch((reason) => {
+          .catch(reason => {
             window.alert(
               `Failed to load bookmarks from server side during startup.\n${reason}`
             );

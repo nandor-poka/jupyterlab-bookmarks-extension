@@ -185,80 +185,80 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
  * @returns `Promise<boolean>`
  */
 export async function addBookmark(
-    commands: CommandRegistry,
-    launcher: ILauncher,
-    bookmarkItem: string[],
-    skipDuplicateCheck?: boolean
+  commands: CommandRegistry,
+  launcher: ILauncher,
+  bookmarkItem: string[],
+  skipDuplicateCheck?: boolean
 ): Promise<boolean> {
-    if (!skipDuplicateCheck) {
-      const bookmarkName = bookmarkItem[0];
-      const bookmarkAbsPath = bookmarkItem[2];
-      for (let i = 0; i < bookmarks.length; i++) {
-        const currentBookmark = bookmarks[i];
-        if (bookmarkName === currentBookmark[0]) {
-          /* we have an incoming bookmark with an existing name
+  if (!skipDuplicateCheck) {
+    const bookmarkName = bookmarkItem[0];
+    const bookmarkAbsPath = bookmarkItem[2];
+    for (let i = 0; i < bookmarks.length; i++) {
+      const currentBookmark = bookmarks[i];
+      if (bookmarkName === currentBookmark[0]) {
+        /* we have an incoming bookmark with an existing name
                    we check if the absolute paths are the same. if yes then the two items are identical,
                    and we don't save it as it already exists we just propt the user.
                    if the abs paths are not the same we ask the user it should be saved with as a separate item 
                    or the existing entry should be updated
                   */
-          if (bookmarkAbsPath === currentBookmark[2]) {
-            //these are identical.
-            showErrorMessage(
-              'Duplicate entry',
-              'The bookmark already exists. Not saving.'
-            );
-            return false;
-          }
-          return await InputDialog.getItem({
-            title: `Bookmark with name: "${bookmarkName}" already exists. What would you like to do?`,
-            items: ['Overwrite', 'Save as new']
-          }).then(
-            async (result): Promise<boolean> => {
-              if (result.button.label === 'Cancel') {
-                return false;
-              }
-              if (result.value === 'Overwrite') {
-                // we delete the old entry and save it as new.
-                await deleteBookmark(bookmarkName);
-                updateCommands(commands, bookmarkItem);
-                updateLauncher(launcher, bookmarkItem);
-                updateMenu(bookmarkItem);
-                updateSettings(bookmarkItem);
-                return true;
-              }
-  
-              if (result.value === 'Save as new') {
-                // we append a (1), (2) etc after it
-                let numberOfCopies = 0;
-                bookmarks.forEach(item => {
-                  if (
-                    item[2].split('/').slice(-1)[0] ===
-                    bookmarkItem[2].split('/').slice(-1)[0]
-                  ) {
-                    numberOfCopies++;
-                  }
-                });
-                bookmarkItem[0] = `${
-                  bookmarkItem[0].split('.')[0]
-                }_(${numberOfCopies}).${bookmarkItem[0].split('.')[1]}`;
-                updateCommands(commands, bookmarkItem);
-                updateLauncher(launcher, bookmarkItem);
-                updateMenu(bookmarkItem);
-                updateSettings(bookmarkItem);
-                return true;
-              }
-            }
+        if (bookmarkAbsPath === currentBookmark[2]) {
+          //these are identical.
+          showErrorMessage(
+            'Duplicate entry',
+            'The bookmark already exists. Not saving.'
           );
+          return false;
         }
+        return await InputDialog.getItem({
+          title: `Bookmark with name: "${bookmarkName}" already exists. What would you like to do?`,
+          items: ['Overwrite', 'Save as new']
+        }).then(
+          async (result): Promise<boolean> => {
+            if (result.button.label === 'Cancel') {
+              return false;
+            }
+            if (result.value === 'Overwrite') {
+              // we delete the old entry and save it as new.
+              await deleteBookmark(bookmarkName);
+              updateCommands(commands, bookmarkItem);
+              updateLauncher(launcher, bookmarkItem);
+              updateMenu(bookmarkItem);
+              updateSettings(bookmarkItem);
+              return true;
+            }
+
+            if (result.value === 'Save as new') {
+              // we append a (1), (2) etc after it
+              let numberOfCopies = 0;
+              bookmarks.forEach(item => {
+                if (
+                  item[2].split('/').slice(-1)[0] ===
+                  bookmarkItem[2].split('/').slice(-1)[0]
+                ) {
+                  numberOfCopies++;
+                }
+              });
+              bookmarkItem[0] = `${
+                bookmarkItem[0].split('.')[0]
+              }_(${numberOfCopies}).${bookmarkItem[0].split('.')[1]}`;
+              updateCommands(commands, bookmarkItem);
+              updateLauncher(launcher, bookmarkItem);
+              updateMenu(bookmarkItem);
+              updateSettings(bookmarkItem);
+              return true;
+            }
+          }
+        );
       }
     }
-    // if duplicate check is false or no duplicate found we just save as is.
-    updateCommands(commands, bookmarkItem);
-    updateLauncher(launcher, bookmarkItem);
-    updateMenu(bookmarkItem);
-    updateSettings(bookmarkItem);
-    return true;
+  }
+  // if duplicate check is false or no duplicate found we just save as is.
+  updateCommands(commands, bookmarkItem);
+  updateLauncher(launcher, bookmarkItem);
+  updateMenu(bookmarkItem);
+  updateSettings(bookmarkItem);
+  return true;
 }
 
 /**

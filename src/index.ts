@@ -56,7 +56,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     launcher: ILauncher,
     settingsRegistry: ISettingRegistry,
     mainMenu: IMainMenu,
-    commandPalette:ICommandPalette,
+    commandPalette: ICommandPalette,
     notebookTracker: INotebookTracker,
     dockManager: IDocumentManager
   ) => {

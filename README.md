@@ -1,5 +1,6 @@
 # jupyterlab-bookmarks-extension
 
+[![PyPI version](https://badge.fury.io/py/jupyterlab-bookmarks-extension.svg)](https://badge.fury.io/py/jupyterlab-bookmarks-extension)
 ![Github Actions Status](https://github.com/nandor-poka/jupyterlab-bookmarks-extension/workflows/Build/badge.svg)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/0e490b1feef34f2fb92ebc8174dc2446)](https://www.codacy.com/manual/np/jupyterlab-bookmarks-extension?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=nandor-poka/jupyterlab-bookmarks-extension&amp;utm_campaign=Badge_Grade)
 

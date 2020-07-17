@@ -11,7 +11,7 @@ for the frontend extension.
 
 ## Requirements
 
-  * JupyterLab >= 2.0
+* JupyterLab >= 2.0
 
 ## Install
 

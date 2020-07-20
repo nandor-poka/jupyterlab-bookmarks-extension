@@ -100,7 +100,6 @@ const extension: JupyterFrontEndPlugin<void> = {
               addBookmark(commands, launcher, bookmarkItem, true, true);
             });
             updateSettings();
-
           })
           .catch(reason => {
             window.alert(

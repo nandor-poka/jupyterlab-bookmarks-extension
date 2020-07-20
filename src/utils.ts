@@ -126,7 +126,7 @@ export function updateCommands(
  * @returns `Promise<void>`
  */
 export async function updateSettings(bookmarkItem?: string[]): Promise<void> {
-  if(bookmarkItem){
+  if (bookmarkItem) {
     bookmarks.push(bookmarkItem);
   }
   await settingsObject.set('bookmarks', bookmarks);
@@ -204,7 +204,7 @@ export async function addBookmark(
   launcher: ILauncher,
   bookmarkItem: string[],
   skipDuplicateCheck?: boolean,
-  startup?:boolean
+  startup?: boolean
 ): Promise<boolean> {
   if (!skipDuplicateCheck) {
     const bookmarkName = bookmarkItem[0];
@@ -273,10 +273,10 @@ export async function addBookmark(
   updateCommands(commands, bookmarkItem);
   updateLauncher(launcher, bookmarkItem);
   updateMenu(bookmarkItem);
-  if (!startup){
+  if (!startup) {
     updateSettings(bookmarkItem);
   }
-  
+
   return true;
 }
 
@@ -306,8 +306,6 @@ export async function addBookmarkItem(
     window.alert(`Failed to save bookmark.\n${bookmarkItemJSON.reason}`);
   }
 }
-
-
 
 /**
  * Synchronises a notebook that has been opened from a temporary location back to it's original instance when the file is saved.
@@ -361,5 +359,3 @@ export function addAutoSyncToBookmark(
     }
   }
 }
-
-

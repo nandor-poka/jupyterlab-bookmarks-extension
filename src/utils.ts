@@ -74,6 +74,7 @@ export function setSettingsObject(
   incomingSettingsObject: ISettingRegistry.ISettings
 ): void {
   settingsObject = incomingSettingsObject;
+  console.log(settingsObject.get('bookmarks'));
 }
 
 /**
@@ -116,6 +117,20 @@ export function updateCommands(
     }
   });
   bookmarkCommands.set(commandId, commandDisposable);
+}
+
+/**
+ * Update the plugin's settings with the bookmark.
+ * @async
+ * @param bookmarkItem - `string[]` that stores the bookmark to be saved to the settings.
+ * @returns `Promise<void>`
+ */
+export async function updateSettings(bookmarkItem?: string[]): Promise<void> {
+  if(bookmarkItem){
+    bookmarks.push(bookmarkItem);
+  }
+  await settingsObject.set('bookmarks', bookmarks);
+  console.log(settingsObject.get('bookmarks'));
 }
 
 /**
@@ -188,7 +203,8 @@ export async function addBookmark(
   commands: CommandRegistry,
   launcher: ILauncher,
   bookmarkItem: string[],
-  skipDuplicateCheck?: boolean
+  skipDuplicateCheck?: boolean,
+  startup?:boolean
 ): Promise<boolean> {
   if (!skipDuplicateCheck) {
     const bookmarkName = bookmarkItem[0];
@@ -257,6 +273,10 @@ export async function addBookmark(
   updateCommands(commands, bookmarkItem);
   updateLauncher(launcher, bookmarkItem);
   updateMenu(bookmarkItem);
+  if (!startup){
+    updateSettings(bookmarkItem);
+  }
+  
   return true;
 }
 
@@ -287,16 +307,7 @@ export async function addBookmarkItem(
   }
 }
 
-/**
- * Update the plugin's settings with the bookmark.
- * @async
- * @param bookmarkItem - `string[]` that stores the bookmark to be saved to the settings.
- * @returns `Promise<void>`
- */
-export async function updateSettings(bookmarkItem: string[]): Promise<void> {
-  bookmarks.push(bookmarkItem);
-  await settingsObject.set('bookmarks', bookmarks);
-}
+
 
 /**
  * Synchronises a notebook that has been opened from a temporary location back to it's original instance when the file is saved.
@@ -350,3 +361,5 @@ export function addAutoSyncToBookmark(
     }
   }
 }
+
+

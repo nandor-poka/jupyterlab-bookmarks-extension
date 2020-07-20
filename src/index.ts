@@ -25,14 +25,15 @@ import {
   initCommandsModule
 } from './commands';
 import {
-  loadSetting,
   addBookmark,
   TITLE,
   addAutoSyncToBookmark,
   setSettingsObject,
-  getSettingsObject,
   getBookmarks,
-  setBookmarks
+  setBookmarks,
+  loadSetting,
+  getSettingsObject,
+  updateSettings
 } from './utils';
 
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
@@ -96,9 +97,10 @@ const extension: JupyterFrontEndPlugin<void> = {
           .then(data => {
             setBookmarks(data.bookmarks);
             getBookmarks().forEach(bookmarkItem => {
-              addBookmark(commands, launcher, bookmarkItem, true);
+              addBookmark(commands, launcher, bookmarkItem, true, true);
             });
-            getSettingsObject().set("bookmarks",getBookmarks());
+            updateSettings();
+
           })
           .catch(reason => {
             window.alert(

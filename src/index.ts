@@ -98,6 +98,7 @@ const extension: JupyterFrontEndPlugin<void> = {
             getBookmarks().forEach(bookmarkItem => {
               addBookmark(commands, launcher, bookmarkItem, true);
             });
+            getSettingsObject().set("bookmarks",getBookmarks());
           })
           .catch(reason => {
             window.alert(

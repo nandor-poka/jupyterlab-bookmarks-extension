@@ -23,7 +23,7 @@ import { getBookmarksMainMenu } from './menus';
 
 //Global vars and exports
 export const commandPrefix = 'jupyterlab-bookmarks-extension:';
-export const VERSION = '0.5.3';
+export const VERSION = '0.5.4';
 export const TITLE_PLAIN = 'Bookmarks';
 export const TITLE = `${TITLE_PLAIN} - ${VERSION}`;
 export const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`;
@@ -257,7 +257,6 @@ export async function addBookmark(
   updateCommands(commands, bookmarkItem);
   updateLauncher(launcher, bookmarkItem);
   updateMenu(bookmarkItem);
-  updateSettings(bookmarkItem);
   return true;
 }
 

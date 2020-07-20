@@ -10,6 +10,10 @@ This extension is composed of a Python package named `jupyterlab_bookmarks_exten
 for the server extension and a NPM package named `jupyterlab-bookmarks-extension`
 for the frontend extension.
 
+## Intro
+
+![Intro](./img/intro.gif)
+
 ## Requirements
 
 * JupyterLab >= 2.0 (preferably 2.2.0)

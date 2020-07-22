@@ -92,7 +92,7 @@ const extension: JupyterFrontEndPlugin<void> = {
 
         requestAPI<any>('updateBookmarks', {
           method: 'POST',
-          body: JSON.stringify({ bookmarksData: getBookmarks() })
+          body: JSON.stringify({bookmarksData: Array.from(getBookmarks().entries())})
         })
           .then(data => {
             setBookmarks(data.bookmarks);

@@ -34,15 +34,15 @@ class UpdateBookmarksHandler(APIHandler):
     def post(self):
         try:
             data = self.get_json_body()
-            # Data structure is Array of arrays => [[0:name, 1:path in current JL root, 2:absolute_path, 3:temp_path, 4:<disabled]]
+            # Data structure is [string, Bookmark][]
             bookmarks = data["bookmarksData"]
             for bookmark in bookmarks:
                 logger.debug(bookmark)
-                bookmarkPath = bookmark[1]
+                bookmarkBasePath = bookmark[1]["base_path"]
                 disabled = False
-                bookmarkAbsPath = bookmark[2]
-                if not os.path.exists(os.path.join(self.root_dir, bookmarkPath)):
-                    logger.debug(f'{os.path.join(self.root_dir, bookmarkPath)} does not exist. Bookmark not accessible from current JL root dir.')
+                bookmarkAbsPath = bookmark["abs_path"]
+                if not os.path.exists(os.path.join(self.root_dir, bookmarkBasePath)):
+                    logger.debug(f'{os.path.join(self.root_dir, bookmarkBasePath)} does not exist. Bookmark not accessible from current JL root dir.')
                     # if we get here, then the current bookmark item is not accessible from the current JL root dir
                     # in this case we should make .tmp dir in current root and copy the bookmarked item
                     # and then use this path in the JL Launcher. Syncing back to the original file is important.                    
@@ -89,7 +89,7 @@ class getAbsPathHandler(APIHandler):
     def post(self):
         #Data structure [name, path in current JL root, absolute_path, temp_path, disabled]
         bookmarkItem = self.get_json_body()
-        bookmarkPath = bookmarkItem[1]
+        bookmarkPath = bookmarkItem["active_path"]
         error = False
         reason = None
         try:
@@ -98,8 +98,7 @@ class getAbsPathHandler(APIHandler):
             logger.error(f'Failed to determine absolute path for {bookmarkPath}')
             error = True
             reason = str(ex)
-        bookmarkItem[2] = bookmarkAbsPath
-        bookmarkItem[3] = bookmarkItem[1]
+        bookmarkItem["abs_path"] = bookmarkAbsPath
         self.finish(json.dumps({
             'bookmarkItem': bookmarkItem,
             'error': error,
@@ -111,7 +110,7 @@ class SyncBookmarkHandler(APIHandler):
     def post(self):
         bookmark = self.get_json_body()
         try:
-            shutil.copy(bookmark[3], bookmark[2])
+            shutil.copy(bookmark["active_path"], bookmark["abs_path"])
             self.finish(json.dumps({
                 'success': True
             }))

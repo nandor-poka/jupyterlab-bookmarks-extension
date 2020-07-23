@@ -95,7 +95,7 @@ const extension: JupyterFrontEndPlugin<void> = {
           body: JSON.stringify({bookmarksData: Array.from(getBookmarks().entries())})
         })
           .then(data => {
-            setBookmarks(data.bookmarks);
+            setBookmarks(new Map(data.bookmarks));
             getBookmarks().forEach(bookmarkItem => {
               addBookmark(commands, launcher, bookmarkItem, true, true);
             });

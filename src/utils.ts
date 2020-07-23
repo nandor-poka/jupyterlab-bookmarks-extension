@@ -30,8 +30,9 @@ export const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`;
 export const NOTEBOOK_FACTORY = 'Notebook';
 let settingsObject: ISettingRegistry.ISettings = null;
 
+// OLD [[name, path in current JL root, absolute_path, temp_path, disabled]]
 /**
- * Data structure is Array of arrays => [[name, path in current JL root, absolute_path, temp_path, disabled]]
+ * Data structure is Map<string, Bookmark> => {title: Bookmark}
  */
 //let bookmarks: Array<Array<string>> = new Array<Array<string>>();
 let bookmarks: Map<string, Bookmark> = new Map<string, Bookmark>();
@@ -75,7 +76,6 @@ export function setSettingsObject(
   incomingSettingsObject: ISettingRegistry.ISettings
 ): void {
   settingsObject = incomingSettingsObject;
-  console.log(settingsObject.get('bookmarks'));
 }
 
 /**
@@ -97,7 +97,8 @@ export function updateCommands(
       bookmarkCommands.delete(commandId);
     }
   }
-  const commandPath: string = bookmarkItem.active_path;
+  const commandPath: string = 
+    bookmarkItem.active_path === bookmarkItem.base_path ? bookmarkItem.base_path : bookmarkItem.active_path;
   const commandDisposable = commands.addCommand(commandPrefix + commandId, {
     label: commandId,
     caption: commandId,
@@ -129,8 +130,7 @@ export async function updateSettings(bookmarkItem?: Bookmark): Promise<void> {
   if (bookmarkItem) {
     bookmarks.set(bookmarkItem.title, bookmarkItem);
   }
-  await settingsObject.set('bookmarks', JSON.stringify(Array.from(bookmarks.entries())));
-  console.log(settingsObject.get('bookmarks'));
+  await settingsObject.set('bookmarks', JSON.parse(JSON.stringify(Array.from(bookmarks.entries()))));
 }
 
 /**
@@ -188,7 +188,7 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
     }
   });
   bookmarks = updatedBookmarks;*/
-  await settingsObject.set('bookmarks', JSON.stringify(Array.from(bookmarks.entries())));
+  await settingsObject.set('bookmarks', JSON.parse(JSON.stringify(Array.from(bookmarks.entries()))));
 }
 
 /** Adds a `bookmarkItem`, to the `commands` list, to the Launcher and to the Bookmarks menu.
@@ -352,7 +352,7 @@ export async function addBookmarkItem(
 ): Promise<void> {
   const bookmarkItemJSON = await requestAPI<any>('getAbsPath', {
     method: 'POST',
-    body: JSON.stringify(new Bookmark(currentDocName, '', currentDocPath, false, ''))
+    body: JSON.stringify(new Bookmark(currentDocName, currentDocPath, '','', false, ''))
   });
   if (!bookmarkItemJSON.error) {
     const bookmarkItem: Bookmark = bookmarkItemJSON.bookmarkItem;

@@ -38,9 +38,9 @@ class UpdateBookmarksHandler(APIHandler):
             bookmarks = data["bookmarksData"]
             for bookmark in bookmarks:
                 logger.debug(f'Updating bookmark {bookmark}')
-                bookmarkBasePath = bookmark[1]["base_path"]
+                bookmarkBasePath = bookmark[1]["basePath"]
                 disabled = False
-                bookmarkAbsPath = bookmark[1]["abs_path"]
+                bookmarkAbsPath = bookmark[1]["absPath"]
                 if not os.path.exists(os.path.join(self.root_dir, bookmarkBasePath)):
                     logger.debug(f'{os.path.join(self.root_dir, bookmarkBasePath)} does not exist. Bookmark not accessible from current JL root dir.')
                     # if we get here, then the current bookmark item is not accessible from the current JL root dir
@@ -58,19 +58,19 @@ class UpdateBookmarksHandler(APIHandler):
                         # if we've got an abosolute path then we copy it to the local .tmp dir and push it to the bookmark item data.
                         try:
                             shutil.copy(bookmarkAbsPath, os.path.join(self.root_dir, '.tmp'+os.path.sep+bookmark[1]["title"]))
-                            bookmark[1]["active_path"] ='.tmp'+os.path.sep+bookmark["title"] #index 3
+                            bookmark[1]["activePath"] ='.tmp'+os.path.sep+bookmark["title"] #index 3
                         except Exception as ex:
                             logger.error(f'Failed to copy {bookmarkAbsPath} to {".tmp"+os.path.sep+bookmark[1]["title"]} .\n{ex}')
                     else:
                         # we leave paths JL root path and abs path as is and set temp_path to empty
-                        bookmark[1]["active_path"]='' #index 3
+                        bookmark[1]["activePath"]='' #index 3
                     # finally we set
                     bookmark[1]["disabled"] = disabled # index 4
                 else:
                     # In this case the bookmark is accessible directly from current JL root.
                     # we set temp_path to JL root path
                     logger.debug('Bookmark available from JL root.')
-                    bookmark[1]["active_path"] = bookmark[1]["base_path"]
+                    bookmark[1]["activePath"] = bookmark[1]["basePath"]
                     bookmark[1]["disabled"] = False# index 4
                 logger.debug(bookmark)
             _bookmarks = bookmarks
@@ -90,7 +90,7 @@ class getAbsPathHandler(APIHandler):
         #Data structure [name, path in current JL root, absolute_path, temp_path, disabled]
         bookmarkItem = self.get_json_body()
         logger.debug(f'Getting absolute path for: {bookmarkItem}')
-        bookmarkPath = bookmarkItem["base_path"]
+        bookmarkPath = bookmarkItem["basePath"]
         error = False
         reason = None
         try:
@@ -99,8 +99,8 @@ class getAbsPathHandler(APIHandler):
             logger.error(f'Failed to determine absolute path for {bookmarkPath}')
             error = True
             reason = str(ex)
-        bookmarkItem["abs_path"] = bookmarkAbsPath
-        bookmarkItem["active_path"] = bookmarkPath
+        bookmarkItem["absPath"] = bookmarkAbsPath
+        bookmarkItem["activePath"] = bookmarkPath
         self.finish(json.dumps({
             'bookmarkItem': bookmarkItem,
             'error': error,
@@ -112,7 +112,7 @@ class SyncBookmarkHandler(APIHandler):
     def post(self):
         bookmark = self.get_json_body()
         try:
-            shutil.copy(bookmark["active_path"], bookmark["abs_path"])
+            shutil.copy(bookmark["activePath"], bookmark["absPath"])
             self.finish(json.dumps({
                 'success': True
             }))

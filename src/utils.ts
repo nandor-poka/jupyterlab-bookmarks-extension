@@ -23,7 +23,7 @@ import { getBookmarksMainMenu } from './menus';
 import { Bookmark } from './bookmark';
 //Global vars and exports
 export const commandPrefix = 'jupyterlab-bookmarks-extension:';
-export const VERSION = '0.5.4';
+export const VERSION = '0.5.5';
 export const TITLE_PLAIN = 'Bookmarks';
 export const TITLE = `${TITLE_PLAIN} - ${VERSION}`;
 export const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`;
@@ -59,7 +59,9 @@ export const bookmarkMenuItems: Map<string, Menu.IItem> = new Map<
  */
 export function loadSetting(settings: ISettingRegistry.ISettings): void {
   // Read the settings and convert to the correct type
-  bookmarks = new Map(settings.get('bookmarks').composite as Array<[string, Bookmark]>);
+  bookmarks = new Map(settings.get('bookmarks').composite as Array<
+    [string, Bookmark]
+  >);
 }
 
 export function setBookmarks(incomingBookmarks: Map<string, Bookmark>): void {
@@ -97,8 +99,10 @@ export function updateCommands(
       bookmarkCommands.delete(commandId);
     }
   }
-  const commandPath: string = 
-    bookmarkItem.active_path === bookmarkItem.base_path ? bookmarkItem.base_path : bookmarkItem.active_path;
+  const commandPath: string =
+    bookmarkItem.activePath === bookmarkItem.basePath
+      ? bookmarkItem.basePath
+      : bookmarkItem.activePath;
   const commandDisposable = commands.addCommand(commandPrefix + commandId, {
     label: commandId,
     caption: commandId,
@@ -107,7 +111,7 @@ export function updateCommands(
       if (disabled) {
         return window.alert(
           `This bookmark is currently unavailable.\nMake sure that ${
-            bookmarkItem.abs_path
+            bookmarkItem.absPath
           } is accessible.`
         );
       }
@@ -130,7 +134,10 @@ export async function updateSettings(bookmarkItem?: Bookmark): Promise<void> {
   if (bookmarkItem) {
     bookmarks.set(bookmarkItem.title, bookmarkItem);
   }
-  await settingsObject.set('bookmarks', JSON.parse(JSON.stringify(Array.from(bookmarks.entries()))));
+  await settingsObject.set(
+    'bookmarks',
+    JSON.parse(JSON.stringify(Array.from(bookmarks.entries())))
+  );
 }
 
 /**
@@ -181,14 +188,17 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
   getBookmarksMainMenu().removeItem(bookmarkMenuItems.get(bookmarkToDelete));
   bookmarkMenuItems.delete(bookmarkToDelete);
   //const updatedBookmarks: Array<Array<string>> = new Array<Array<string>>();
-  bookmarks.delete(bookmarkToDelete)
+  bookmarks.delete(bookmarkToDelete);
   /*bookmarks.forEach(bookmarkItem => {
     if (bookmarkItem[0] !== bookmarkToDelete) {
       updatedBookmarks.push(bookmarkItem);
     }
   });
   bookmarks = updatedBookmarks;*/
-  await settingsObject.set('bookmarks', JSON.parse(JSON.stringify(Array.from(bookmarks.entries()))));
+  await settingsObject.set(
+    'bookmarks',
+    JSON.parse(JSON.stringify(Array.from(bookmarks.entries())))
+  );
 }
 
 /** Adds a `bookmarkItem`, to the `commands` list, to the Launcher and to the Bookmarks menu.
@@ -210,9 +220,9 @@ export async function addBookmark(
   if (!skipDuplicateCheck) {
     const bookmarkName = bookmarkItem.title;
     //const bookmarkAbsPath = bookmarkItem[2];
-    if (bookmarks.has(bookmarkName)){
+    if (bookmarks.has(bookmarkName)) {
       // if we have a bookmark with the same title we have to check for paths to see if they are the same or not.
-      if (bookmarkItem.abs_path === bookmarks.get(bookmarkName).abs_path){
+      if (bookmarkItem.absPath === bookmarks.get(bookmarkName).absPath) {
         showErrorMessage(
           'Duplicate entry',
           'The bookmark already exists. Not saving.'
@@ -242,8 +252,8 @@ export async function addBookmark(
             let numberOfCopies = 0;
             bookmarks.forEach(bookmark => {
               if (
-                bookmark.abs_path.split('/').slice(-1)[0] ===
-                bookmarkItem.abs_path.split('/').slice(-1)[0]
+                bookmark.absPath.split('/').slice(-1)[0] ===
+                bookmarkItem.absPath.split('/').slice(-1)[0]
               ) {
                 numberOfCopies++;
               }
@@ -260,9 +270,8 @@ export async function addBookmark(
         }
       );
       // else branch when titles are identical but absolute paths are not
-
     }
-   /* 
+    /* 
     for (let i = 0; i < bookmarks.length; i++) {
       const currentBookmark = bookmarks[i];
       if (bookmarkName === currentBookmark[0]) {
@@ -352,7 +361,9 @@ export async function addBookmarkItem(
 ): Promise<void> {
   const bookmarkItemJSON = await requestAPI<any>('getAbsPath', {
     method: 'POST',
-    body: JSON.stringify(new Bookmark(currentDocName, currentDocPath, '','', false, ''))
+    body: JSON.stringify(
+      new Bookmark(currentDocName, currentDocPath, '', '', false, '')
+    )
   });
   if (!bookmarkItemJSON.error) {
     const bookmarkItem: Bookmark = bookmarkItemJSON.bookmarkItem;
@@ -371,11 +382,11 @@ export function syncBookmark(
   bookmarkedNotebookModel: DocumentRegistry.IContext<INotebookModel>
   //contentsModel: Contents.IModel
 ): void {
-  let bookmarkEntries = Array.from(bookmarks.entries());
+  const bookmarkEntries = Array.from(bookmarks.entries());
   for (let i = 0; i < bookmarkEntries.length; i++) {
     if (
-      bookmarkEntries[i][1].active_path.startsWith('.tmp') &&
-      bookmarkEntries[i][1].abs_path === bookmarkedNotebookModel.path
+      bookmarkEntries[i][1].activePath.startsWith('.tmp') &&
+      bookmarkEntries[i][1].absPath === bookmarkedNotebookModel.path
     ) {
       requestAPI<any>('syncBookmark', {
         method: 'POST',
@@ -384,12 +395,16 @@ export function syncBookmark(
         .then(result => {
           if (!result.success) {
             window.alert(
-              `Failed to autosync for ${bookmarkEntries[i][1].title}.\n${result.reason}`
+              `Failed to autosync for ${bookmarkEntries[i][1].title}.\n${
+                result.reason
+              }`
             );
           }
         })
         .catch(error => {
-          window.alert(`Failed to autosync for ${bookmarkEntries[i][1].title}.\n${error}`);
+          window.alert(
+            `Failed to autosync for ${bookmarkEntries[i][1].title}.\n${error}`
+          );
         });
       break;
     }
@@ -405,11 +420,11 @@ export function addAutoSyncToBookmark(
   notebookTracker: INotebookTracker,
   notebookPanel: NotebookPanel
 ): void {
-  let bookmarkEntries = Array.from(bookmarks.entries());
+  const bookmarkEntries = Array.from(bookmarks.entries());
   for (let i = 0; i < bookmarkEntries.length; i++) {
     if (
-      bookmarkEntries[i][1].active_path.startsWith('.tmp') &&
-      bookmarkEntries[i][1].abs_path === notebookPanel.context.path
+      bookmarkEntries[i][1].activePath.startsWith('.tmp') &&
+      bookmarkEntries[i][1].absPath === notebookPanel.context.path
     ) {
       notebookPanel.context.fileChanged.connect(syncBookmark);
       break;

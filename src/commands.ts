@@ -6,7 +6,7 @@
 
 import { closeIcon, addIcon, redoIcon } from '@jupyterlab/ui-components';
 import { FileDialog } from '@jupyterlab/filebrowser';
-import { InputDialog } from '@jupyterlab/apputils';
+import { InputDialog, showErrorMessage } from '@jupyterlab/apputils';
 
 // Custom imports
 import {
@@ -136,7 +136,7 @@ export const moveToCategoryCommand = {
     caption: 'Move to category',
     icon: redoIcon,
     execute: (): void => {
-      console.log('moving bookmark to category...');
+      showErrorMessage('Message', 'moving bookmark to category...');
       return null;
     }
   }

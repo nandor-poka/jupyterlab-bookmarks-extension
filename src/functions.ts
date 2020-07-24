@@ -202,6 +202,7 @@ export async function addBookmark(
   skipDuplicateCheck?: boolean,
   startup?: boolean
 ): Promise<boolean> {
+  addCategory(bookmarkItem.category, true);
   if (!skipDuplicateCheck) {
     const bookmarkName = bookmarkItem.title;
     //const bookmarkAbsPath = bookmarkItem[2];
@@ -358,19 +359,24 @@ export function addAutoSyncToBookmark(
   }
 }
 
-export function addCategory(categoryToAdd: string): void {
+export function addCategory(categoryToAdd: string, silent?: boolean): void {
   if (!categories.has(categoryToAdd)) {
     categories.set(categoryToAdd, new Array<IDisposable>());
     addCategoryToLauncher(categoryToAdd);
   } else {
-    showErrorMessage(
-      'Duplicate category',
-      `Category "${categoryToAdd}" already exists. Not adding.`
-    );
+    if (!silent) {
+      showErrorMessage(
+        'Duplicate category',
+        `Category "${categoryToAdd}" already exists. Not adding.`
+      );
+    }
   }
 }
 
 export function deleteCategory(categoryToDelete: string): void {
+  categories.get(categoryToDelete).forEach(item => {
+    item.dispose();
+  });
   categories.delete(categoryToDelete);
 }
 
@@ -379,7 +385,7 @@ function addCategoryToLauncher(categoryToAdd: string): void {
     command: addBookmarkLauncherCommand.id,
     category: TITLE + categoryToAdd,
     rank: 1,
-    args: { category: categoryToAdd }
+    args: { categoryToAdd }
   });
 
   launcher.add({

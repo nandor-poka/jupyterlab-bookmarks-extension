@@ -47,7 +47,7 @@ export const addBookmarkLauncherCommand = {
     label: 'Add bookmark',
     caption: 'Add bookmark',
     icon: addIcon,
-    execute: (category: any): void => {
+    execute: (args: any): void => {
       FileDialog.getOpenFiles({
         manager: docManager,
         filter: model => model.type === 'notebook'
@@ -58,7 +58,7 @@ export const addBookmarkLauncherCommand = {
             launcher,
             selectedFile.name,
             selectedFile.path,
-            category
+            args.categoryToAdd
           );
         });
       });

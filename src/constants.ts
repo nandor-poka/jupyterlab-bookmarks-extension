@@ -15,7 +15,7 @@ export const commandPrefix = 'jupyterlab-bookmarks-extension:';
 export const VERSION = '0.5.5';
 export const TITLE_PLAIN = 'Bookmarks';
 export const TITLE_MANAGEMENT = `${TITLE_PLAIN} - Management - ${VERSION}`;
-export const TITLE = `${TITLE_PLAIN} - ${VERSION}`;
+export const TITLE = `${TITLE_PLAIN} - ${VERSION} `;
 export const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`;
 export const NOTEBOOK_FACTORY = 'Notebook';
 export let notebookTracker: INotebookTracker;

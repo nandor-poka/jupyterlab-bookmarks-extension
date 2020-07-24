@@ -110,18 +110,11 @@ const extension: JupyterFrontEndPlugin<void> = {
             window.alert(
               `Failed to load bookmarks from server side during startup.\n${reason}`
             );
-
-            console.error(
-              `Failed to load bookmarks from server side during startup.\n${reason}`
-            );
           });
         notebookTracker.currentChanged.connect(addAutoSyncToBookmark);
       })
       .catch(reason => {
         window.alert(
-          `Failed to read JupyterLab bookmarks' settings from file.\n${reason}`
-        );
-        console.error(
           `Failed to read JupyterLab bookmarks' settings from file.\n${reason}`
         );
       });

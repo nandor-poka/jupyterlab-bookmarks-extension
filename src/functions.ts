@@ -186,6 +186,27 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
   );
 }
 
+export function addCategory(categoryToAdd: string, silent?: boolean): void {
+  if (!categories.has(categoryToAdd)) {
+    categories.set(categoryToAdd, new Array<IDisposable>());
+    addCategoryToLauncher(categoryToAdd);
+  } else {
+    if (!silent) {
+      showErrorMessage(
+        'Duplicate category',
+        `Category "${categoryToAdd}" already exists. Not adding.`
+      );
+    }
+  }
+}
+
+export function deleteCategory(categoryToDelete: string): void {
+  categories.get(categoryToDelete).forEach(item => {
+    item.dispose();
+  });
+  categories.delete(categoryToDelete);
+}
+
 /** Adds a `bookmarkItem`, to the `commands` list, to the Launcher and to the Bookmarks menu.
  * @async
  * @param commands - A `CommandRegistry` instance that holds the commands registered in the JL app.
@@ -307,21 +328,22 @@ export async function addBookmarkItem(
 export function syncBookmark(
   bookmarkedNotebookModel: DocumentRegistry.IContext<INotebookModel>
 ): void {
-  const bookmarkEntries = Array.from(bookmarks.entries());
-  for (let i = 0; i < bookmarkEntries.length; i++) {
+  let iterartorBookmark: Bookmark;
+  for (const bookmarkKey in bookmarks.keys) {
+    iterartorBookmark = bookmarks.get(bookmarkKey);
     if (
-      bookmarkEntries[i][1].activePath.startsWith('.tmp') &&
-      bookmarkEntries[i][1].absPath === bookmarkedNotebookModel.path
+      iterartorBookmark.activePath.startsWith('.tmp') &&
+      iterartorBookmark.absPath === bookmarkedNotebookModel.path
     ) {
       //Once we find the bookmark that corresponds to the file that has been saved we make a request to the server to sync and exit the loop.
       requestAPI<any>('syncBookmark', {
         method: 'POST',
-        body: JSON.stringify(bookmarkEntries[i][1])
+        body: JSON.stringify(iterartorBookmark)
       })
         .then(result => {
           if (!result.success) {
             window.alert(
-              `Failed to autosync for ${bookmarkEntries[i][1].title}.\n${
+              `Failed to autosync for ${iterartorBookmark.title}.\n${
                 result.reason
               }`
             );
@@ -329,7 +351,7 @@ export function syncBookmark(
         })
         .catch(error => {
           window.alert(
-            `Failed to autosync for ${bookmarkEntries[i][1].title}.\n${error}`
+            `Failed to autosync for ${iterartorBookmark.title}.\n${error}`
           );
         });
       break;
@@ -357,27 +379,6 @@ export function addAutoSyncToBookmark(
       break;
     }
   }
-}
-
-export function addCategory(categoryToAdd: string, silent?: boolean): void {
-  if (!categories.has(categoryToAdd)) {
-    categories.set(categoryToAdd, new Array<IDisposable>());
-    addCategoryToLauncher(categoryToAdd);
-  } else {
-    if (!silent) {
-      showErrorMessage(
-        'Duplicate category',
-        `Category "${categoryToAdd}" already exists. Not adding.`
-      );
-    }
-  }
-}
-
-export function deleteCategory(categoryToDelete: string): void {
-  categories.get(categoryToDelete).forEach(item => {
-    item.dispose();
-  });
-  categories.delete(categoryToDelete);
 }
 
 function addCategoryToLauncher(categoryToAdd: string): void {

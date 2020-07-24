@@ -4,7 +4,7 @@
 
 // Jupyterlab / Lumino imports
 import { INotebookTracker } from '@jupyterlab/notebook';
-import { closeIcon, addIcon } from '@jupyterlab/ui-components';
+import { closeIcon, addIcon, redoIcon } from '@jupyterlab/ui-components';
 import { FileDialog } from '@jupyterlab/filebrowser';
 import { InputDialog } from '@jupyterlab/apputils';
 import { IDocumentManager } from '@jupyterlab/docmanager';
@@ -17,7 +17,10 @@ import {
   syncBookmark,
   addBookmarkItem,
   deleteBookmark,
-  bookmarkLaunchers
+  bookmarkLaunchers,
+  addCategory,
+  categories,
+  deleteCategory
 } from './utils';
 
 // local variables
@@ -98,3 +101,57 @@ export const removeBookmarkCommand = {
     }
   }
 };
+
+export const addCategoryCommand = {
+  id: commandPrefix + 'addCategory',
+  options:{
+    label: 'Add category',
+    caption: 'Add new bookmark category',
+    icon: addIcon,
+    execute: ():void => {
+      InputDialog.getText({
+        title: 'Add new category'
+      }).then( result => {
+        if (result.button.label !== 'Cancel'){
+          const categoryToAdd: string = result.value;
+          addCategory(categoryToAdd);
+        }
+      });
+    }
+  }
+}
+
+export const deleteCategoryCommand = {
+  id: commandPrefix + 'deleteCategory',
+  options:{
+    label: 'Delete category',
+    caption: 'Delete category',
+    icon: closeIcon,
+    execute: ():void => {
+      InputDialog.getItem({
+        title: 'Delete category',
+        items: categories,
+      }).then( result => {
+        if (result.button.label !== 'Cancel'){
+          const categoryToDelete: string = result.value;
+          deleteCategory(categoryToDelete);
+        }
+      });
+    }
+  }
+}
+
+export const moveToCategoryCommand = {
+  id: commandPrefix + 'moveToCategory',
+  options:{
+    label: 'Move to category',
+    caption: 'Move to category',
+    icon: redoIcon,
+    execute: (): void =>{
+      console.log("moving bookmark to category...")
+      return null;
+    }
+  }
+}
+
+

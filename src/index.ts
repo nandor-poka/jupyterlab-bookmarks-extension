@@ -22,18 +22,21 @@ import {
   addBookmarkContextMenuCommand,
   addBookmarkLauncherCommand,
   removeBookmarkCommand,
-  initCommandsModule
+  initCommandsModule,
+  moveToCategoryCommand,
+  addCategoryCommand,
+  deleteCategoryCommand,
 } from './commands';
 import {
   addBookmark,
-  TITLE,
   addAutoSyncToBookmark,
   setSettingsObject,
   getBookmarks,
   setBookmarks,
   loadSetting,
   getSettingsObject,
-  updateSettings
+  updateSettings,
+  TITLE_MANAGEMENT
 } from './utils';
 
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
@@ -137,22 +140,57 @@ const extension: JupyterFrontEndPlugin<void> = {
       addBookmarkLauncherCommand.options
     );
 
+    commands.addCommand(
+      addCategoryCommand.id,
+      addCategoryCommand.options
+    )
+
+    commands.addCommand(
+      deleteCategoryCommand.id,
+      deleteCategoryCommand.options
+    )
+      
+    commands.addCommand(
+      moveToCategoryCommand.id, 
+      moveToCategoryCommand.options
+      );
+
     app.contextMenu.addItem({
       command: addBookmarkContextMenuCommand.id,
       selector: '.jp-Notebook',
       rank: 10
     });
 
-    launcher.add({
-      command: removeBookmarkCommand.id,
-      category: TITLE,
-      rank: 2
+    app.contextMenu.addItem({
+      command: moveToCategoryCommand.id,
+      selector: '.jp-LauncherCard',
+      rank:10
     });
+
     launcher.add({
       command: addBookmarkLauncherCommand.id,
-      category: TITLE,
+      category: TITLE_MANAGEMENT,
       rank: 1
     });
+    
+    launcher.add({
+      command: removeBookmarkCommand.id,
+      category: TITLE_MANAGEMENT,
+      rank: 2
+    });
+
+    launcher.add({
+      command: addCategoryCommand.id,
+      category: TITLE_MANAGEMENT,
+      rank: 3
+    });
+
+    launcher.add({
+      command: deleteCategoryCommand.id,
+      category: TITLE_MANAGEMENT,
+      rank: 4
+    });
+    
 
     console.log(
       'JupyterLab extension jupyterlab-bookmarks-extension is activated!'

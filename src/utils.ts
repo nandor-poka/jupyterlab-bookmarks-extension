@@ -21,13 +21,17 @@ import { requestAPI } from './jupyterlab-bookmarks-extension';
 // Custom imports
 import { getBookmarksMainMenu } from './menus';
 import { Bookmark } from './bookmark';
+
 //Global vars and exports
 export const commandPrefix = 'jupyterlab-bookmarks-extension:';
 export const VERSION = '0.5.5';
 export const TITLE_PLAIN = 'Bookmarks';
+export const TITLE_MANAGEMENT = `${TITLE_PLAIN} - Management - ${VERSION}`;
 export const TITLE = `${TITLE_PLAIN} - ${VERSION}`;
 export const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`;
 export const NOTEBOOK_FACTORY = 'Notebook';
+
+// non exported variables
 let settingsObject: ISettingRegistry.ISettings = null;
 
 // OLD [[name, path in current JL root, absolute_path, temp_path, disabled]]
@@ -37,6 +41,7 @@ let settingsObject: ISettingRegistry.ISettings = null;
 //let bookmarks: Array<Array<string>> = new Array<Array<string>>();
 let bookmarks: Map<string, Bookmark> = new Map<string, Bookmark>();
 
+// exported variables
 export const bookmarkCommands: Map<string, IDisposable> = new Map<
   string,
   IDisposable
@@ -50,6 +55,8 @@ export const bookmarkMenuItems: Map<string, Menu.IItem> = new Map<
   string,
   Menu.IItem
 >();
+
+export let categories: Array<string> = new Array<string>();
 
 //exported methods
 /**
@@ -67,6 +74,7 @@ export function loadSetting(settings: ISettingRegistry.ISettings): void {
 export function setBookmarks(incomingBookmarks: Map<string, Bookmark>): void {
   bookmarks = incomingBookmarks;
 }
+
 export function getBookmarks(): Map<string, Bookmark> {
   return bookmarks;
 }
@@ -166,7 +174,6 @@ export function updateLauncher(
  */
 export function updateMenu(bookmarkItem: Bookmark): void {
   const commandId: string = bookmarkItem.title;
-  //const disabled = bookmarkItem[4] === 'True';
   const bookmarkMenuItem = getBookmarksMainMenu().addItem({
     type: 'command',
     command: commandPrefix + commandId
@@ -187,14 +194,7 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
   bookmarkCommands.delete(bookmarkToDelete);
   getBookmarksMainMenu().removeItem(bookmarkMenuItems.get(bookmarkToDelete));
   bookmarkMenuItems.delete(bookmarkToDelete);
-  //const updatedBookmarks: Array<Array<string>> = new Array<Array<string>>();
   bookmarks.delete(bookmarkToDelete);
-  /*bookmarks.forEach(bookmarkItem => {
-    if (bookmarkItem[0] !== bookmarkToDelete) {
-      updatedBookmarks.push(bookmarkItem);
-    }
-  });
-  bookmarks = updatedBookmarks;*/
   await settingsObject.set(
     'bookmarks',
     JSON.parse(JSON.stringify(Array.from(bookmarks.entries())))
@@ -269,69 +269,7 @@ export async function addBookmark(
           }
         }
       );
-      // else branch when titles are identical but absolute paths are not
-    }
-    /* 
-    for (let i = 0; i < bookmarks.length; i++) {
-      const currentBookmark = bookmarks[i];
-      if (bookmarkName === currentBookmark[0]) {
-        /* we have an incoming bookmark with an existing name
-                   we check if the absolute paths are the same. if yes then the two items are identical,
-                   and we don't save it as it already exists we just propt the user.
-                   if the abs paths are not the same we ask the user it should be saved with as a separate item 
-                   or the existing entry should be updated
-                  */
-    /*
-        if (bookmarkAbsPath === currentBookmark[2]) {
-          //these are identical.
-          showErrorMessage(
-            'Duplicate entry',
-            'The bookmark already exists. Not saving.'
-          );
-          return false;
-        }
-        return await InputDialog.getItem({
-          title: `Bookmark with name: "${bookmarkName}" already exists. What would you like to do?`,
-          items: ['Overwrite', 'Save as new']
-        }).then(
-          async (result): Promise<boolean> => {
-            if (result.button.label === 'Cancel') {
-              return false;
-            }
-            if (result.value === 'Overwrite') {
-              // we delete the old entry and save it as new.
-              await deleteBookmark(bookmarkName);
-              updateCommands(commands, bookmarkItem);
-              updateLauncher(launcher, bookmarkItem);
-              updateMenu(bookmarkItem);
-              updateSettings(bookmarkItem);
-              return true;
-            }
-
-            if (result.value === 'Save as new') {
-              // we append a (1), (2) etc after it
-              let numberOfCopies = 0;
-              bookmarks.forEach(item => {
-                if (
-                  item[2].split('/').slice(-1)[0] ===
-                  bookmarkItem[2].split('/').slice(-1)[0]
-                ) {
-                  numberOfCopies++;
-                }
-              });
-              bookmarkItem[0] = `${
-                bookmarkItem[0].split('.')[0]
-              }_(${numberOfCopies}).${bookmarkItem[0].split('.')[1]}`;
-              updateCommands(commands, bookmarkItem);
-              updateLauncher(launcher, bookmarkItem);
-              updateMenu(bookmarkItem);
-              updateSettings(bookmarkItem);
-              return true;
-            }
-          }
-        );
-      }
-    }*/
+    }  
   }
   // if duplicate check is false or no duplicate found we just save as is.
   updateCommands(commands, bookmarkItem);
@@ -380,7 +318,6 @@ export async function addBookmarkItem(
  */
 export function syncBookmark(
   bookmarkedNotebookModel: DocumentRegistry.IContext<INotebookModel>
-  //contentsModel: Contents.IModel
 ): void {
   const bookmarkEntries = Array.from(bookmarks.entries());
   for (let i = 0; i < bookmarkEntries.length; i++) {
@@ -388,6 +325,7 @@ export function syncBookmark(
       bookmarkEntries[i][1].activePath.startsWith('.tmp') &&
       bookmarkEntries[i][1].absPath === bookmarkedNotebookModel.path
     ) {
+      //Once we find the bookmark that corresponds to the file that has been saved we make a request to the server to sync and exit the loop.
       requestAPI<any>('syncBookmark', {
         method: 'POST',
         body: JSON.stringify(bookmarkEntries[i][1])
@@ -426,8 +364,30 @@ export function addAutoSyncToBookmark(
       bookmarkEntries[i][1].activePath.startsWith('.tmp') &&
       bookmarkEntries[i][1].absPath === notebookPanel.context.path
     ) {
+      // If we find the file that needs to be synced we connect the appropriate function and exit the loop
       notebookPanel.context.fileChanged.connect(syncBookmark);
       break;
     }
   }
+}
+
+export function addCategory( categoryToAdd: string) : void{
+  if (!categories.find( category => category === categoryToAdd) ){
+    categories.push(categoryToAdd);
+  } else {
+    showErrorMessage(
+      'Duplicate category',
+      `Category "${categoryToAdd}" already exists. Not adding.`,
+    );
+  }
+}
+
+export function deleteCategory(categoryToDelete: string){
+  const updatedCategories : Array<string> = new Array<string>();
+  categories.forEach(category => {
+    if (category === categoryToDelete){
+      updatedCategories.push(category);
+    }
+  });
+  categories = updatedCategories;
 }

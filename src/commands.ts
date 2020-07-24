@@ -3,43 +3,28 @@
  */
 
 // Jupyterlab / Lumino imports
-import { INotebookTracker } from '@jupyterlab/notebook';
+
 import { closeIcon, addIcon, redoIcon } from '@jupyterlab/ui-components';
 import { FileDialog } from '@jupyterlab/filebrowser';
 import { InputDialog } from '@jupyterlab/apputils';
-import { IDocumentManager } from '@jupyterlab/docmanager';
-import { ILauncher } from '@jupyterlab/launcher';
-import { CommandRegistry } from '@lumino/commands';
 
 // Custom imports
 import {
   commandPrefix,
+  bookmarkLaunchers,
+  categories,
+  launcher,
+  docManager,
+  commands,
+  notebookTracker
+} from './constants';
+import {
   syncBookmark,
   addBookmarkItem,
   deleteBookmark,
-  bookmarkLaunchers,
   addCategory,
-  categories,
   deleteCategory
-} from './utils';
-
-// local variables
-let notebookTracker: INotebookTracker;
-let docManager: IDocumentManager;
-let commands: CommandRegistry;
-let launcher: ILauncher;
-
-export function initCommandsModule(
-  nbkTracker: INotebookTracker,
-  docMan: IDocumentManager,
-  cmds: CommandRegistry,
-  launch: ILauncher
-): void {
-  notebookTracker = nbkTracker;
-  docManager = docMan;
-  commands = cmds;
-  launcher = launch;
-}
+} from './functions';
 
 export const addBookmarkContextMenuCommand = {
   id: commandPrefix + 'addBookmark',
@@ -51,7 +36,7 @@ export const addBookmarkContextMenuCommand = {
       currentDoc.context.fileChanged.connect(syncBookmark);
       const currentDocName = currentDoc.context.contentsModel.name;
       const currentDocPath = currentDoc.context.path;
-      addBookmarkItem(commands, launcher, currentDocName, currentDocPath);
+      addBookmarkItem(commands, launcher, currentDocName, currentDocPath, '');
     }
   }
 };
@@ -62,7 +47,7 @@ export const addBookmarkLauncherCommand = {
     label: 'Add bookmark',
     caption: 'Add bookmark',
     icon: addIcon,
-    execute: (): void => {
+    execute: (category: any): void => {
       FileDialog.getOpenFiles({
         manager: docManager,
         filter: model => model.type === 'notebook'
@@ -72,7 +57,8 @@ export const addBookmarkLauncherCommand = {
             commands,
             launcher,
             selectedFile.name,
-            selectedFile.path
+            selectedFile.path,
+            category
           );
         });
       });
@@ -104,54 +90,54 @@ export const removeBookmarkCommand = {
 
 export const addCategoryCommand = {
   id: commandPrefix + 'addCategory',
-  options:{
+  options: {
     label: 'Add category',
     caption: 'Add new bookmark category',
     icon: addIcon,
-    execute: ():void => {
+    execute: (): void => {
       InputDialog.getText({
         title: 'Add new category'
-      }).then( result => {
-        if (result.button.label !== 'Cancel'){
+      }).then(result => {
+        if (result.button.label !== 'Cancel') {
           const categoryToAdd: string = result.value;
           addCategory(categoryToAdd);
         }
       });
     }
   }
-}
+};
 
 export const deleteCategoryCommand = {
   id: commandPrefix + 'deleteCategory',
-  options:{
+  options: {
     label: 'Delete category',
     caption: 'Delete category',
     icon: closeIcon,
-    execute: ():void => {
+    execute: (): void => {
       InputDialog.getItem({
         title: 'Delete category',
-        items: categories,
-      }).then( result => {
-        if (result.button.label !== 'Cancel'){
+        items: Array.from(categories, item => {
+          return item[0];
+        })
+      }).then(result => {
+        if (result.button.label !== 'Cancel') {
           const categoryToDelete: string = result.value;
           deleteCategory(categoryToDelete);
         }
       });
     }
   }
-}
+};
 
 export const moveToCategoryCommand = {
   id: commandPrefix + 'moveToCategory',
-  options:{
+  options: {
     label: 'Move to category',
     caption: 'Move to category',
     icon: redoIcon,
-    execute: (): void =>{
-      console.log("moving bookmark to category...")
+    execute: (): void => {
+      console.log('moving bookmark to category...');
       return null;
     }
   }
-}
-
-
+};

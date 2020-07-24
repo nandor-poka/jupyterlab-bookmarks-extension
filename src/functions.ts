@@ -5,11 +5,7 @@
 // Jupyterlab / Lumino imports
 import { ISettingRegistry } from '@jupyterlab/settingregistry';
 import { InputDialog, showErrorMessage } from '@jupyterlab/apputils';
-import { IDisposable } from '@lumino/disposable';
-import { Menu } from '@lumino/widgets';
-import { CommandRegistry } from '@lumino/commands';
 import { notebookIcon } from '@jupyterlab/ui-components';
-import { ILauncher } from '@jupyterlab/launcher';
 import {
   INotebookTracker,
   NotebookPanel,
@@ -17,48 +13,37 @@ import {
 } from '@jupyterlab/notebook';
 import { DocumentRegistry } from '@jupyterlab/docregistry';
 import { requestAPI } from './jupyterlab-bookmarks-extension';
+import { CommandRegistry } from '@lumino/commands';
+import { IDisposable } from '@lumino/disposable';
 
-// Custom imports
+//custom imports
 import { getBookmarksMainMenu } from './menus';
-import { Bookmark } from './bookmark';
+import { addBookmarkLauncherCommand, removeBookmarkCommand } from './commands';
+import {
+  commandPrefix,
+  bookmarkCommands,
+  NOTEBOOK_FACTORY,
+  DISABLED_TITLE,
+  TITLE,
+  bookmarkLaunchers,
+  bookmarkMenuItems,
+  categories,
+  launcher
+} from './constants';
 
-//Global vars and exports
-export const commandPrefix = 'jupyterlab-bookmarks-extension:';
-export const VERSION = '0.5.5';
-export const TITLE_PLAIN = 'Bookmarks';
-export const TITLE_MANAGEMENT = `${TITLE_PLAIN} - Management - ${VERSION}`;
-export const TITLE = `${TITLE_PLAIN} - ${VERSION}`;
-export const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`;
-export const NOTEBOOK_FACTORY = 'Notebook';
-
-// non exported variables
-let settingsObject: ISettingRegistry.ISettings = null;
+export let settingsObject: ISettingRegistry.ISettings = null;
 
 // OLD [[name, path in current JL root, absolute_path, temp_path, disabled]]
 /**
  * Data structure is Map<string, Bookmark> => {title: Bookmark}
  */
 //let bookmarks: Array<Array<string>> = new Array<Array<string>>();
-let bookmarks: Map<string, Bookmark> = new Map<string, Bookmark>();
+export let bookmarks: Map<string, Bookmark> = new Map<string, Bookmark>();
 
-// exported variables
-export const bookmarkCommands: Map<string, IDisposable> = new Map<
-  string,
-  IDisposable
->();
-export const bookmarkLaunchers: Map<string, IDisposable> = new Map<
-  string,
-  IDisposable
->();
+// Custom imports
+import { Bookmark } from './bookmark';
+import { ILauncher } from '@jupyterlab/launcher';
 
-export const bookmarkMenuItems: Map<string, Menu.IItem> = new Map<
-  string,
-  Menu.IItem
->();
-
-export let categories: Array<string> = new Array<string>();
-
-//exported methods
 /**
  * Load the settings for this extension
  *
@@ -162,7 +147,7 @@ export function updateLauncher(
   const disabled = bookmarkItem.disabled === true;
   const launcherItem: IDisposable = launcher.add({
     command: commandPrefix + commandId,
-    category: disabled ? DISABLED_TITLE : TITLE
+    category: disabled ? DISABLED_TITLE : TITLE + bookmarkItem.category
   });
   bookmarkLaunchers.set(commandId, launcherItem);
 }
@@ -269,7 +254,7 @@ export async function addBookmark(
           }
         }
       );
-    }  
+    }
   }
   // if duplicate check is false or no duplicate found we just save as is.
   updateCommands(commands, bookmarkItem);
@@ -289,18 +274,20 @@ export async function addBookmark(
  * @param launcher - The `Launcher` instance to add the bookmark to.
  * @param currentDocName - `string` the name of the open notebbook
  * @param currentDocPath - `string` the path of the open notebook
+ * @param category - `string` the name of the category to add the bookmark to. Empty string if no category (`''`).
  * @returns `Promise<void>`
  */
 export async function addBookmarkItem(
   commands: CommandRegistry,
   launcher: ILauncher,
   currentDocName: string,
-  currentDocPath: string
+  currentDocPath: string,
+  category: string
 ): Promise<void> {
   const bookmarkItemJSON = await requestAPI<any>('getAbsPath', {
     method: 'POST',
     body: JSON.stringify(
-      new Bookmark(currentDocName, currentDocPath, '', '', false, '')
+      new Bookmark(currentDocName, currentDocPath, '', '', false, category)
     )
   });
   if (!bookmarkItemJSON.error) {
@@ -371,23 +358,33 @@ export function addAutoSyncToBookmark(
   }
 }
 
-export function addCategory( categoryToAdd: string) : void{
-  if (!categories.find( category => category === categoryToAdd) ){
-    categories.push(categoryToAdd);
+export function addCategory(categoryToAdd: string): void {
+  if (!categories.has(categoryToAdd)) {
+    categories.set(categoryToAdd, new Array<IDisposable>());
+    addCategoryToLauncher(categoryToAdd);
   } else {
     showErrorMessage(
       'Duplicate category',
-      `Category "${categoryToAdd}" already exists. Not adding.`,
+      `Category "${categoryToAdd}" already exists. Not adding.`
     );
   }
 }
 
-export function deleteCategory(categoryToDelete: string){
-  const updatedCategories : Array<string> = new Array<string>();
-  categories.forEach(category => {
-    if (category === categoryToDelete){
-      updatedCategories.push(category);
-    }
+export function deleteCategory(categoryToDelete: string): void {
+  categories.delete(categoryToDelete);
+}
+
+function addCategoryToLauncher(categoryToAdd: string): void {
+  launcher.add({
+    command: addBookmarkLauncherCommand.id,
+    category: TITLE + categoryToAdd,
+    rank: 1,
+    args: { category: categoryToAdd }
   });
-  categories = updatedCategories;
+
+  launcher.add({
+    command: removeBookmarkCommand.id,
+    category: TITLE + categoryToAdd,
+    rank: 2
+  });
 }

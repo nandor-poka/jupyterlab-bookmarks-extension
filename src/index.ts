@@ -22,11 +22,12 @@ import {
   addBookmarkContextMenuCommand,
   addBookmarkLauncherCommand,
   removeBookmarkCommand,
-  initCommandsModule,
   moveToCategoryCommand,
   addCategoryCommand,
-  deleteCategoryCommand,
+  deleteCategoryCommand
 } from './commands';
+import { initConstantsModule, TITLE_MANAGEMENT } from './constants';
+
 import {
   addBookmark,
   addAutoSyncToBookmark,
@@ -35,9 +36,8 @@ import {
   setBookmarks,
   loadSetting,
   getSettingsObject,
-  updateSettings,
-  TITLE_MANAGEMENT
-} from './utils';
+  updateSettings
+} from './functions';
 
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
 
@@ -67,7 +67,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Extension level constants / variables
     const { commands } = app;
     mainMenu.addMenu(initBookmarksMainMenu(commands));
-    initCommandsModule(notebookTracker, dockManager, commands, launcher);
+    initConstantsModule(notebookTracker, dockManager, commands, launcher);
 
     getBookmarksMainMenu().addItem({
       type: 'command',
@@ -140,20 +140,17 @@ const extension: JupyterFrontEndPlugin<void> = {
       addBookmarkLauncherCommand.options
     );
 
-    commands.addCommand(
-      addCategoryCommand.id,
-      addCategoryCommand.options
-    )
+    commands.addCommand(addCategoryCommand.id, addCategoryCommand.options);
 
     commands.addCommand(
       deleteCategoryCommand.id,
       deleteCategoryCommand.options
-    )
-      
+    );
+
     commands.addCommand(
-      moveToCategoryCommand.id, 
+      moveToCategoryCommand.id,
       moveToCategoryCommand.options
-      );
+    );
 
     app.contextMenu.addItem({
       command: addBookmarkContextMenuCommand.id,
@@ -164,15 +161,16 @@ const extension: JupyterFrontEndPlugin<void> = {
     app.contextMenu.addItem({
       command: moveToCategoryCommand.id,
       selector: '.jp-LauncherCard',
-      rank:10
+      rank: 10
     });
 
     launcher.add({
       command: addBookmarkLauncherCommand.id,
       category: TITLE_MANAGEMENT,
-      rank: 1
+      rank: 1,
+      args: { category: '' }
     });
-    
+
     launcher.add({
       command: removeBookmarkCommand.id,
       category: TITLE_MANAGEMENT,
@@ -190,7 +188,6 @@ const extension: JupyterFrontEndPlugin<void> = {
       category: TITLE_MANAGEMENT,
       rank: 4
     });
-    
 
     console.log(
       'JupyterLab extension jupyterlab-bookmarks-extension is activated!'

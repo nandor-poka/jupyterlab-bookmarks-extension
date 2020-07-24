@@ -45,7 +45,7 @@ class UpdateBookmarksHandler(APIHandler):
                     logger.debug(f'{os.path.join(self.root_dir, bookmarkBasePath)} does not exist. Bookmark not accessible from current JL root dir.')
                     # if we get here, then the current bookmark item is not accessible from the current JL root dir
                     # in this case we should make .tmp dir in current root and copy the bookmarked item
-                    # and then use this path in the JL Launcher. Syncing back to the original file is important.                    
+                    # and then use this path in the JL Launcher. Syncing back to the original file is important.
                     if not os.path.exists(bookmarkAbsPath):
                         logger.debug(f'{bookmarkAbsPath} does not exist.')
                         disabled = True

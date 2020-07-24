@@ -186,26 +186,41 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
   );
 }
 
+function addCategoryToLauncher(categoryToAdd: string): void {
+  launcher.add({
+    command: addBookmarkLauncherCommand.id,
+    category: TITLE + categoryToAdd,
+    rank: 1,
+    args: { categoryToAdd }
+  });
+
+  launcher.add({
+    command: removeBookmarkCommand.id,
+    category: TITLE + categoryToAdd,
+    rank: 2
+  });
+}
+
 export function addCategory(categoryToAdd: string, silent?: boolean): void {
-    if (!categories.has(categoryToAdd)) {
-      categories.set(categoryToAdd, new Array<IDisposable>());
-      addCategoryToLauncher(categoryToAdd);
-    } else {
-      if (!silent) {
-        showErrorMessage(
-          'Duplicate category',
-          `Category "${categoryToAdd}" already exists. Not adding.`
-        );
-      }
+  if (!categories.has(categoryToAdd)) {
+    categories.set(categoryToAdd, new Array<IDisposable>());
+    addCategoryToLauncher(categoryToAdd);
+  } else {
+    if (!silent) {
+      showErrorMessage(
+        'Duplicate category',
+        `Category "${categoryToAdd}" already exists. Not adding.`
+      );
     }
   }
-  
-  export function deleteCategory(categoryToDelete: string): void {
-    categories.get(categoryToDelete).forEach(item => {
-      item.dispose();
-    });
-    categories.delete(categoryToDelete);
-  }
+}
+
+export function deleteCategory(categoryToDelete: string): void {
+  categories.get(categoryToDelete).forEach(item => {
+    item.dispose();
+  });
+  categories.delete(categoryToDelete);
+}
 
 /** Adds a `bookmarkItem`, to the `commands` list, to the Launcher and to the Bookmarks menu.
  * @async
@@ -329,7 +344,7 @@ export function syncBookmark(
   bookmarkedNotebookModel: DocumentRegistry.IContext<INotebookModel>
 ): void {
   let iterartorBookmark: Bookmark;
-  for (let bookmarkKey in bookmarks.keys) {
+  for (const bookmarkKey in bookmarks.keys) {
     iterartorBookmark = bookmarks.get(bookmarkKey);
     if (
       iterartorBookmark.activePath.startsWith('.tmp') &&
@@ -369,7 +384,7 @@ export function addAutoSyncToBookmark(
   notebookPanel: NotebookPanel
 ): void {
   let iterartorBookmark: Bookmark;
-  for (let bookmarkKey in bookmarks.keys) {
+  for (const bookmarkKey in bookmarks.keys) {
     iterartorBookmark = bookmarks.get(bookmarkKey);
     if (
       iterartorBookmark.activePath.startsWith('.tmp') &&
@@ -380,21 +395,4 @@ export function addAutoSyncToBookmark(
       break;
     }
   }
-}
-
-
-
-function addCategoryToLauncher(categoryToAdd: string): void {
-  launcher.add({
-    command: addBookmarkLauncherCommand.id,
-    category: TITLE + categoryToAdd,
-    rank: 1,
-    args: { categoryToAdd }
-  });
-
-  launcher.add({
-    command: removeBookmarkCommand.id,
-    category: TITLE + categoryToAdd,
-    rank: 2
-  });
 }

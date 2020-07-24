@@ -187,25 +187,25 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
 }
 
 export function addCategory(categoryToAdd: string, silent?: boolean): void {
-  if (!categories.has(categoryToAdd)) {
-    categories.set(categoryToAdd, new Array<IDisposable>());
-    addCategoryToLauncher(categoryToAdd);
-  } else {
-    if (!silent) {
-      showErrorMessage(
-        'Duplicate category',
-        `Category "${categoryToAdd}" already exists. Not adding.`
-      );
+    if (!categories.has(categoryToAdd)) {
+      categories.set(categoryToAdd, new Array<IDisposable>());
+      addCategoryToLauncher(categoryToAdd);
+    } else {
+      if (!silent) {
+        showErrorMessage(
+          'Duplicate category',
+          `Category "${categoryToAdd}" already exists. Not adding.`
+        );
+      }
     }
   }
-}
-
-export function deleteCategory(categoryToDelete: string): void {
-  categories.get(categoryToDelete).forEach(item => {
-    item.dispose();
-  });
-  categories.delete(categoryToDelete);
-}
+  
+  export function deleteCategory(categoryToDelete: string): void {
+    categories.get(categoryToDelete).forEach(item => {
+      item.dispose();
+    });
+    categories.delete(categoryToDelete);
+  }
 
 /** Adds a `bookmarkItem`, to the `commands` list, to the Launcher and to the Bookmarks menu.
  * @async
@@ -329,7 +329,7 @@ export function syncBookmark(
   bookmarkedNotebookModel: DocumentRegistry.IContext<INotebookModel>
 ): void {
   let iterartorBookmark: Bookmark;
-  for (const bookmarkKey in bookmarks.keys) {
+  for (let bookmarkKey in bookmarks.keys) {
     iterartorBookmark = bookmarks.get(bookmarkKey);
     if (
       iterartorBookmark.activePath.startsWith('.tmp') &&
@@ -368,11 +368,12 @@ export function addAutoSyncToBookmark(
   notebookTracker: INotebookTracker,
   notebookPanel: NotebookPanel
 ): void {
-  const bookmarkEntries = Array.from(bookmarks.entries());
-  for (let i = 0; i < bookmarkEntries.length; i++) {
+  let iterartorBookmark: Bookmark;
+  for (let bookmarkKey in bookmarks.keys) {
+    iterartorBookmark = bookmarks.get(bookmarkKey);
     if (
-      bookmarkEntries[i][1].activePath.startsWith('.tmp') &&
-      bookmarkEntries[i][1].absPath === notebookPanel.context.path
+      iterartorBookmark.activePath.startsWith('.tmp') &&
+      iterartorBookmark.absPath === notebookPanel.context.path
     ) {
       // If we find the file that needs to be synced we connect the appropriate function and exit the loop
       notebookPanel.context.fileChanged.connect(syncBookmark);
@@ -380,6 +381,8 @@ export function addAutoSyncToBookmark(
     }
   }
 }
+
+
 
 function addCategoryToLauncher(categoryToAdd: string): void {
   launcher.add({

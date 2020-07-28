@@ -188,19 +188,22 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
 }
 
 function addCategoryToLauncher(category: string): void {
-  launcher.add({
-    command: addBookmarkLauncherCommand.id,
-    category: TITLE + category,
-    rank: 1,
-    args: { category }
-  });
-
-  launcher.add({
-    command: removeBookmarkCommand.id,
-    category: TITLE + category,
-    rank: 2,
-    args: { category }
-  });
+  categories.get(category).push(
+    launcher.add({
+      command: addBookmarkLauncherCommand.id,
+      category: TITLE + category,
+      rank: 1,
+      args: { category }
+    })
+  );
+  categories.get(category).push(
+    launcher.add({
+      command: removeBookmarkCommand.id,
+      category: TITLE + category,
+      rank: 2,
+      args: { category }
+    })
+  );
 }
 
 export function addCategory(categoryToAdd: string, silent?: boolean): void {
@@ -218,6 +221,14 @@ export function addCategory(categoryToAdd: string, silent?: boolean): void {
 }
 
 export function deleteCategory(categoryToDelete: string): void {
+  bookmarks.forEach(bookmark => {
+    if (bookmark.category === categoryToDelete) {
+      bookmarkLaunchers.get(bookmark.title).dispose();
+      bookmark.category = UNCATEGORIZED;
+      updateLauncher(launcher, bookmark);
+      updateSettings(bookmark);
+    }
+  });
   categories.get(categoryToDelete).forEach(item => {
     item.dispose();
   });

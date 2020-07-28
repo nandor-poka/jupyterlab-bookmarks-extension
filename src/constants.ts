@@ -22,6 +22,7 @@ export let notebookTracker: INotebookTracker;
 export let docManager: IDocumentManager;
 export let commands: CommandRegistry;
 export let launcher: ILauncher;
+export const UNCATEGORIZED = 'Uncategorized';
 
 // exported variables
 export const bookmarkCommands: Map<string, IDisposable> = new Map<

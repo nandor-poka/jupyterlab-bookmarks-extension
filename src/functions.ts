@@ -28,7 +28,8 @@ import {
   bookmarkLaunchers,
   bookmarkMenuItems,
   categories,
-  launcher
+  launcher,
+  UNCATEGORIZED
 } from './constants';
 
 export let settingsObject: ISettingRegistry.ISettings = null;
@@ -186,18 +187,19 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
   );
 }
 
-function addCategoryToLauncher(categoryToAdd: string): void {
+function addCategoryToLauncher(category: string): void {
   launcher.add({
     command: addBookmarkLauncherCommand.id,
-    category: TITLE + categoryToAdd,
+    category: TITLE + category,
     rank: 1,
-    args: { categoryToAdd }
+    args: { category }
   });
 
   launcher.add({
     command: removeBookmarkCommand.id,
-    category: TITLE + categoryToAdd,
-    rank: 2
+    category: TITLE + category,
+    rank: 2,
+    args: { category }
   });
 }
 
@@ -238,6 +240,9 @@ export async function addBookmark(
   skipDuplicateCheck?: boolean,
   startup?: boolean
 ): Promise<boolean> {
+  if (bookmarkItem.category === '') {
+    bookmarkItem.category = UNCATEGORIZED;
+  }
   addCategory(bookmarkItem.category, true);
   if (!skipDuplicateCheck) {
     const bookmarkName = bookmarkItem.title;

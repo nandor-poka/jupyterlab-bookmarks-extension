@@ -6,7 +6,7 @@
 
 import { closeIcon, addIcon, redoIcon } from '@jupyterlab/ui-components';
 import { FileDialog } from '@jupyterlab/filebrowser';
-import { InputDialog, showErrorMessage } from '@jupyterlab/apputils';
+import { InputDialog } from '@jupyterlab/apputils';
 
 // Custom imports
 import {
@@ -23,20 +23,36 @@ import {
   addBookmarkItem,
   deleteBookmark,
   addCategory,
-  deleteCategory
+  deleteCategory,
+  bookmarks
 } from './functions';
 
 export const addBookmarkContextMenuCommand = {
   id: commandPrefix + 'addBookmark',
   options: {
-    label: 'Add to bookmarks',
-    caption: 'Add to bookmarks',
+    label: 'Add to bookmark to...',
+    caption: 'Add to bookmark to a given category',
     execute: async (): Promise<any> => {
-      const currentDoc = notebookTracker.currentWidget;
-      currentDoc.context.fileChanged.connect(syncBookmark);
-      const currentDocName = currentDoc.context.contentsModel.name;
-      const currentDocPath = currentDoc.context.path;
-      addBookmarkItem(commands, launcher, currentDocName, currentDocPath, '');
+      InputDialog.getItem({
+        title: 'Select category',
+        items: Array.from(categories, item => {
+          return item[0];
+        })
+      }).then(result => {
+        const category =
+          result.value === undefined ? 'Uncategorized' : result.value;
+        const currentDoc = notebookTracker.currentWidget;
+        currentDoc.context.fileChanged.connect(syncBookmark);
+        const currentDocName = currentDoc.context.contentsModel.name;
+        const currentDocPath = currentDoc.context.path;
+        addBookmarkItem(
+          commands,
+          launcher,
+          currentDocName,
+          currentDocPath,
+          category
+        );
+      });
     }
   }
 };
@@ -58,7 +74,7 @@ export const addBookmarkLauncherCommand = {
             launcher,
             selectedFile.name,
             selectedFile.path,
-            args.categoryToAdd
+            args.category
           );
         });
       });
@@ -72,12 +88,19 @@ export const removeBookmarkCommand = {
     label: 'Delete Bookmark',
     caption: 'Delete Bookmark',
     icon: closeIcon,
-    execute: (): void => {
+    execute: (args: any): void => {
       InputDialog.getItem({
         title: 'Select bookmark to delete',
-        items: Array.from(bookmarkLaunchers, item => {
-          return item[0];
-        })
+        items:
+          args.category === 'all'
+            ? Array.from(bookmarkLaunchers, item => {
+                return item[0];
+              })
+            : Array.from(bookmarks, entry => {
+                if (entry[1].category === args.category) {
+                  return entry[1].title;
+                }
+              }).filter(title => title !== undefined)
       }).then(async result => {
         if (result.button.label !== 'Cancel') {
           const bookmarkToDelete: string = result.value;
@@ -136,7 +159,6 @@ export const moveToCategoryCommand = {
     caption: 'Move to category',
     icon: redoIcon,
     execute: (): void => {
-      showErrorMessage('Message', 'moving bookmark to category...');
       return null;
     }
   }

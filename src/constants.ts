@@ -9,6 +9,10 @@ import { CommandRegistry } from '@lumino/commands';
 import { ILauncher } from '@jupyterlab/launcher';
 import { INotebookTracker } from '@jupyterlab/notebook';
 import { IDocumentManager } from '@jupyterlab/docmanager';
+import { LabIcon } from '@jupyterlab/ui-components';
+
+// Custom imports
+import favorite from '../style/favorite.svg';
 
 //Global vars and exports
 export const commandPrefix = 'jupyterlab-bookmarks-extension:';
@@ -23,7 +27,10 @@ export let docManager: IDocumentManager;
 export let commands: CommandRegistry;
 export let launcher: ILauncher;
 export const UNCATEGORIZED = 'Uncategorized';
-
+export const FAVORITE_ICON = new LabIcon({
+  name: commandPrefix + 'FavoriteIcon',
+  svgstr: favorite
+});
 // exported variables
 export const bookmarkCommands: Map<string, IDisposable> = new Map<
   string,

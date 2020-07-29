@@ -16,7 +16,8 @@ import {
   launcher,
   docManager,
   commands,
-  notebookTracker
+  notebookTracker,
+  FAVORITE_ICON,
 } from './constants';
 import {
   syncBookmark,
@@ -62,7 +63,7 @@ export const addBookmarkLauncherCommand = {
   options: {
     label: 'Add bookmark',
     caption: 'Add bookmark',
-    icon: addIcon,
+    icon: FAVORITE_ICON,
     execute: (args: any): void => {
       FileDialog.getOpenFiles({
         manager: docManager,

@@ -17,7 +17,7 @@ import {
   docManager,
   commands,
   notebookTracker,
-  FAVORITE_ICON,
+  FAVORITE_ICON
 } from './constants';
 import {
   syncBookmark,
@@ -69,15 +69,17 @@ export const addBookmarkLauncherCommand = {
         manager: docManager,
         filter: model => model.type === 'notebook'
       }).then(result => {
-        result.value.forEach(selectedFile => {
-          addBookmarkItem(
-            commands,
-            launcher,
-            selectedFile.name,
-            selectedFile.path,
-            args.category
-          );
-        });
+        if (result.button.label !== 'Cancel') {
+          result.value.forEach(selectedFile => {
+            addBookmarkItem(
+              commands,
+              launcher,
+              selectedFile.name,
+              selectedFile.path,
+              args.category
+            );
+          });
+        }
       });
     }
   }

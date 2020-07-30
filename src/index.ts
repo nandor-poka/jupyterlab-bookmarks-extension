@@ -29,17 +29,17 @@ import {
 import {
   initConstantsModule,
   TITLE_MANAGEMENT,
-  UNCATEGORIZED
+  UNCATEGORIZED,
+  setSettingsObject,
+  getBookmarks,
+  setBookmarks,
+  getSettingsObject
 } from './constants';
 
 import {
   addBookmark,
   addAutoSyncToBookmark,
-  setSettingsObject,
-  getBookmarks,
-  setBookmarks,
   loadSetting,
-  getSettingsObject,
   updateSettings,
   addCategory
 } from './functions';
@@ -161,8 +161,7 @@ const extension: JupyterFrontEndPlugin<void> = {
     launcher.add({
       command: addBookmarkLauncherCommand.id,
       category: TITLE_MANAGEMENT,
-      rank: 1,
-      args: { category: UNCATEGORIZED }
+      rank: 1
     });
 
     launcher.add({

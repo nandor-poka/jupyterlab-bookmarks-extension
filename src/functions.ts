@@ -28,50 +28,25 @@ import {
   bookmarkLaunchers,
   bookmarkMenuItems,
   categories,
-  launcher,
-  UNCATEGORIZED
+  UNCATEGORIZED,
+  setBookmarks,
+  getBookmarks,
+  getSettingsObject,
+  getLauncher
 } from './constants';
-
-export let settingsObject: ISettingRegistry.ISettings = null;
-
-// OLD [[name, path in current JL root, absolute_path, temp_path, disabled]]
-/**
- * Data structure is Map<string, Bookmark> => {title: Bookmark}
- */
-//let bookmarks: Array<Array<string>> = new Array<Array<string>>();
-export let bookmarks: Map<string, Bookmark> = new Map<string, Bookmark>();
-
-// Custom imports
 import { Bookmark } from './bookmark';
 import { ILauncher } from '@jupyterlab/launcher';
 
 /**
- * Load the settings for this extension
+ * Load the settings for this extension. Sets the `bookmarks` to the bookmarks stored in the settings.
  *
- * @param settings Extension settings
+ * @param settings `ISettingsRegistry.Isettings` - Extension settings
  */
 export function loadSetting(settings: ISettingRegistry.ISettings): void {
   // Read the settings and convert to the correct type
-  bookmarks = new Map(settings.get('bookmarks').composite as Array<
-    [string, Bookmark]
-  >);
-}
-
-export function setBookmarks(incomingBookmarks: Map<string, Bookmark>): void {
-  bookmarks = incomingBookmarks;
-}
-
-export function getBookmarks(): Map<string, Bookmark> {
-  return bookmarks;
-}
-
-export function getSettingsObject(): ISettingRegistry.ISettings {
-  return settingsObject;
-}
-export function setSettingsObject(
-  incomingSettingsObject: ISettingRegistry.ISettings
-): void {
-  settingsObject = incomingSettingsObject;
+  setBookmarks(
+    new Map(settings.get('bookmarks').composite as Array<[string, Bookmark]>)
+  );
 }
 
 /**
@@ -126,11 +101,11 @@ export function updateCommands(
  */
 export async function updateSettings(bookmarkItem?: Bookmark): Promise<void> {
   if (bookmarkItem) {
-    bookmarks.set(bookmarkItem.title, bookmarkItem);
+    getBookmarks().set(bookmarkItem.title, bookmarkItem);
   }
-  await settingsObject.set(
+  await getSettingsObject().set(
     'bookmarks',
-    JSON.parse(JSON.stringify(Array.from(bookmarks.entries())))
+    JSON.parse(JSON.stringify(Array.from(getBookmarks().entries())))
   );
 }
 
@@ -180,16 +155,22 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
   bookmarkCommands.delete(bookmarkToDelete);
   getBookmarksMainMenu().removeItem(bookmarkMenuItems.get(bookmarkToDelete));
   bookmarkMenuItems.delete(bookmarkToDelete);
-  bookmarks.delete(bookmarkToDelete);
-  await settingsObject.set(
+  getBookmarks().delete(bookmarkToDelete);
+  await getSettingsObject().set(
     'bookmarks',
-    JSON.parse(JSON.stringify(Array.from(bookmarks.entries())))
+    JSON.parse(JSON.stringify(Array.from(getBookmarks().entries())))
   );
 }
 
+/**
+ * Adds `category` to the `Launcher`, by initializing the
+ * new category with two standard commands. Used internally by
+ * `addCategory()`.
+ * @param category `string` - the name of the category to add.
+ */
 function addCategoryToLauncher(category: string): void {
   categories.get(category).push(
-    launcher.add({
+    getLauncher().add({
       command: addBookmarkLauncherCommand.id,
       category: TITLE + category,
       rank: 1,
@@ -197,7 +178,7 @@ function addCategoryToLauncher(category: string): void {
     })
   );
   categories.get(category).push(
-    launcher.add({
+    getLauncher().add({
       command: removeBookmarkCommand.id,
       category: TITLE + category,
       rank: 2,
@@ -206,6 +187,12 @@ function addCategoryToLauncher(category: string): void {
   );
 }
 
+/**
+ * Adds new category. Duplicates cannot be added.
+ * @param categoryToAdd `string` - the name of the category to add.
+ * @param silent `boolean` - `true` if suppress warning for duplicate category.
+ *
+ */
 export function addCategory(categoryToAdd: string, silent?: boolean): void {
   if (!categories.has(categoryToAdd)) {
     categories.set(categoryToAdd, new Array<IDisposable>());
@@ -220,12 +207,17 @@ export function addCategory(categoryToAdd: string, silent?: boolean): void {
   }
 }
 
+/**
+ * Deletes a category. Disposes launcher items in the category and moves bookmarks from
+ * the category being deleted to Uncategorized`.
+ * @param categoryToDelete `string` - the name of the category to delete.
+ */
 export function deleteCategory(categoryToDelete: string): void {
-  bookmarks.forEach(bookmark => {
+  getBookmarks().forEach(bookmark => {
     if (bookmark.category === categoryToDelete) {
       bookmarkLaunchers.get(bookmark.title).dispose();
       bookmark.category = UNCATEGORIZED;
-      updateLauncher(launcher, bookmark);
+      updateLauncher(getLauncher(), bookmark);
       updateSettings(bookmark);
     }
   });
@@ -258,9 +250,9 @@ export async function addBookmark(
   if (!skipDuplicateCheck) {
     const bookmarkName = bookmarkItem.title;
     //const bookmarkAbsPath = bookmarkItem[2];
-    if (bookmarks.has(bookmarkName)) {
+    if (getBookmarks().has(bookmarkName)) {
       // if we have a bookmark with the same title we have to check for paths to see if they are the same or not.
-      if (bookmarkItem.absPath === bookmarks.get(bookmarkName).absPath) {
+      if (bookmarkItem.absPath === getBookmarks().get(bookmarkName).absPath) {
         showErrorMessage(
           'Duplicate entry',
           'The bookmark already exists. Not saving.'
@@ -288,7 +280,7 @@ export async function addBookmark(
           if (result.value === 'Save as new') {
             // we append a (1), (2) etc after it
             let numberOfCopies = 0;
-            bookmarks.forEach(bookmark => {
+            getBookmarks().forEach(bookmark => {
               if (
                 bookmark.absPath.split('/').slice(-1)[0] ===
                 bookmarkItem.absPath.split('/').slice(-1)[0]
@@ -360,8 +352,8 @@ export function syncBookmark(
   bookmarkedNotebookModel: DocumentRegistry.IContext<INotebookModel>
 ): void {
   let iterartorBookmark: Bookmark;
-  for (const bookmarkKey in bookmarks.keys) {
-    iterartorBookmark = bookmarks.get(bookmarkKey);
+  for (const bookmarkKey in getBookmarks().keys) {
+    iterartorBookmark = getBookmarks().get(bookmarkKey);
     if (
       iterartorBookmark.activePath.startsWith('.tmp') &&
       iterartorBookmark.absPath === bookmarkedNotebookModel.path
@@ -400,8 +392,8 @@ export function addAutoSyncToBookmark(
   notebookPanel: NotebookPanel
 ): void {
   let iterartorBookmark: Bookmark;
-  for (const bookmarkKey in bookmarks.keys) {
-    iterartorBookmark = bookmarks.get(bookmarkKey);
+  for (const bookmarkKey in getBookmarks().keys) {
+    iterartorBookmark = getBookmarks().get(bookmarkKey);
     if (
       iterartorBookmark.activePath.startsWith('.tmp') &&
       iterartorBookmark.absPath === notebookPanel.context.path

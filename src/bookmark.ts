@@ -1,3 +1,6 @@
+/**
+ * Public class that represents a single bookmark item.
+ */
 export class Bookmark {
   public title: string;
   public basePath: string;

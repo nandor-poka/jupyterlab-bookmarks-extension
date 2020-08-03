@@ -7,8 +7,18 @@ import os
 import logging
 import shutil
 
-_log_file_path = os.path.join(os.environ["HOME"], 'JL-Bookmarks.log')
+_extension_home_dir = os.path.join(os.environ["HOME"],'.jl-bookmarks')
+if not os.path.exists(_extension_home_dir):
+    ## Create <USER_HOME/.jl-bookmarks dir if it doesn't exists.
+    try:
+        os.mkdir(_extension_home_dir)
 
+    except OSError:
+        print(f'Could not create extension home dir at: {_extension_home_dir}')
+
+
+_log_file_path = os.path.join(os.environ["HOME"],'.jl-bookmarks', 'JL-Bookmarks.log')
+_settings_file_path = os.path.join(os.environ["HOME"],'.jl-bookmarks', 'settings.json')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -18,6 +28,71 @@ logger.addHandler(logFileHandler)
 logger.propagate=False
 
 _bookmarks = None
+
+class SettingsHandler(APIHandler):
+    # Saving extension settings to disk, thus making it persistent.
+
+    @tornado.web.authenticated
+    def get(self):
+        if not os.path.exists(_settings_file_path):
+            self.finish(
+                json.dumps({
+                    'result': False,
+                    'reason':'Settings file does not exist.'
+                })
+            )
+        try:
+            with open (_settings_file_path, mode='r') as settings_file:
+                settings = settings_file.read()
+                settings_file.close()
+                self.finish(
+                    json.dumps({
+                        'result': True,
+                        'settings': settings
+                    })
+                )
+        except OSError as ex:
+            logger.exception(f'Failed to read settings file at {_settings_file_path}.\n{ex}')
+            self.finish(
+                json.dumps({
+                    'result': False,
+                    'reason': f'Failed to read settings file at {_settings_file_path}.\n{ex}'
+                })
+            )
+        
+    @tornado.web.authenticated
+    def post(self):
+        if not os.path.exists(_extension_home_dir):
+        ## Create <USER_HOME/.jl-bookmarks dir if it doesn't exists.
+            try:
+                os.mkdir(_extension_home_dir)
+            except OSError as ex:
+                logger.exception(f'Failed to save settings. Extension home directory does not exist and could not create it\n{ex}')
+                self.finish(
+                    json.dumps({
+                        'result': False,
+                        'reason': f'Failed to save settings. Extension home directory does not exist and could not create it\n{ex}'
+                    })
+                )
+        try:
+            with open (_settings_file_path, mode='w') as settings_file:
+                settings = self.get_json_body()
+                settings_file.write(
+                    json.dumps({
+                        'bookmarks':settings["bookmarks"]
+                    })
+                )
+                settings_file.close()
+                self.finish(
+                    json.dumps({
+                        'result': True
+                    })
+                )
+        except Exception as ex:
+            logger.exception(f'Failed to save settings.\n{ex}')
+            self.finish(
+                json.dump
+            )
 
 class UpdateBookmarksHandler(APIHandler):
     @property
@@ -129,10 +204,12 @@ def setup_handlers(web_app):
     update_bookmarks_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "updateBookmarks")
     getAbsPath_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "getAbsPath")
     syncBookmark_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "syncBookmark")
+    setings_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "settings")
     handlers = [
         (update_bookmarks_pattern, UpdateBookmarksHandler),
         (getAbsPath_pattern, getAbsPathHandler),
-        (syncBookmark_pattern, SyncBookmarkHandler)
-        ]
+        (syncBookmark_pattern, SyncBookmarkHandler),
+        (setings_pattern, SettingsHandler)
+    ]
     web_app.add_handlers(host_pattern, handlers)
     logger.info('JupyterLab Bookmarks extension has started.')

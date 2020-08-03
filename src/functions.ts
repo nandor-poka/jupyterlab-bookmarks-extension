@@ -107,6 +107,11 @@ export async function updateSettings(bookmarkItem?: Bookmark): Promise<void> {
     'bookmarks',
     JSON.parse(JSON.stringify(Array.from(getBookmarks().entries())))
   );
+  requestAPI<any>('settings',{
+    method: 'POST',
+    body: 
+     `{"bookmarks":${JSON.stringify(getSettingsObject().get('bookmarks').composite)}}`
+  })
 }
 
 /**

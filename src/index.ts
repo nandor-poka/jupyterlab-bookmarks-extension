@@ -44,6 +44,8 @@ import {
   addCategory
 } from './functions';
 
+import { Bookmark } from './bookmark'
+
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
 
 /**
@@ -93,6 +95,13 @@ const extension: JupyterFrontEndPlugin<void> = {
     // for the settings for this plugin to be loaded
     Promise.all([app.restored, settingsRegistry.load(PLUGIN_ID)])
       .then(([, settings]) => {
+        requestAPI<any>('settings').then(  async response =>{
+          if (response.result === true && new Map(response.settings.bookmarks) !== new Map(settings.get('bookmarks').composite as Array<[string, Bookmark]>)){
+            console.log(new Map(Array.from(JSON.parse(response.settings.bookmarks))))
+            console.log(new Map(settings.get('bookmarks').composite as Array<[string, Bookmark]>))
+            await settings.set('bookmarks', JSON.parse(response.settings.bookmarks))
+          }
+        })
         // Read the settings
         setSettingsObject(settings);
         loadSetting(getSettingsObject());

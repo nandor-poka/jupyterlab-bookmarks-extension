@@ -7,7 +7,7 @@ import { Menu } from '@lumino/widgets';
 import { CommandRegistry } from '@lumino/commands';
 
 // Custom imports
-import { TITLE_PLAIN } from './utils';
+import { TITLE_PLAIN } from './constants';
 
 export let bookmarksMainMenu: Menu;
 /**

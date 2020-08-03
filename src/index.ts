@@ -22,19 +22,27 @@ import {
   addBookmarkContextMenuCommand,
   addBookmarkLauncherCommand,
   removeBookmarkCommand,
-  initCommandsModule
+  moveToCategoryCommand,
+  addCategoryCommand,
+  deleteCategoryCommand
 } from './commands';
 import {
-  addBookmark,
-  TITLE,
-  addAutoSyncToBookmark,
+  initConstantsModule,
+  TITLE_MANAGEMENT,
+  UNCATEGORIZED,
   setSettingsObject,
   getBookmarks,
   setBookmarks,
+  getSettingsObject
+} from './constants';
+
+import {
+  addBookmark,
+  addAutoSyncToBookmark,
   loadSetting,
-  getSettingsObject,
-  updateSettings
-} from './utils';
+  updateSettings,
+  addCategory
+} from './functions';
 
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
 
@@ -63,8 +71,10 @@ const extension: JupyterFrontEndPlugin<void> = {
   ) => {
     // Extension level constants / variables
     const { commands } = app;
+
     mainMenu.addMenu(initBookmarksMainMenu(commands));
-    initCommandsModule(notebookTracker, dockManager, commands, launcher);
+
+    initConstantsModule(notebookTracker, dockManager, commands, launcher);
 
     getBookmarksMainMenu().addItem({
       type: 'command',
@@ -92,10 +102,12 @@ const extension: JupyterFrontEndPlugin<void> = {
 
         requestAPI<any>('updateBookmarks', {
           method: 'POST',
-          body: JSON.stringify({ bookmarksData: getBookmarks() })
+          body: JSON.stringify({
+            bookmarksData: Array.from(getBookmarks().entries())
+          })
         })
           .then(data => {
-            setBookmarks(data.bookmarks);
+            setBookmarks(new Map(data.bookmarks));
             getBookmarks().forEach(bookmarkItem => {
               addBookmark(commands, launcher, bookmarkItem, true, true);
             });
@@ -105,18 +117,11 @@ const extension: JupyterFrontEndPlugin<void> = {
             window.alert(
               `Failed to load bookmarks from server side during startup.\n${reason}`
             );
-
-            console.error(
-              `Failed to load bookmarks from server side during startup.\n${reason}`
-            );
           });
         notebookTracker.currentChanged.connect(addAutoSyncToBookmark);
       })
       .catch(reason => {
         window.alert(
-          `Failed to read JupyterLab bookmarks' settings from file.\n${reason}`
-        );
-        console.error(
           `Failed to read JupyterLab bookmarks' settings from file.\n${reason}`
         );
       });
@@ -135,6 +140,18 @@ const extension: JupyterFrontEndPlugin<void> = {
       addBookmarkLauncherCommand.options
     );
 
+    commands.addCommand(addCategoryCommand.id, addCategoryCommand.options);
+
+    commands.addCommand(
+      deleteCategoryCommand.id,
+      deleteCategoryCommand.options
+    );
+
+    commands.addCommand(
+      moveToCategoryCommand.id,
+      moveToCategoryCommand.options
+    );
+
     app.contextMenu.addItem({
       command: addBookmarkContextMenuCommand.id,
       selector: '.jp-Notebook',
@@ -142,15 +159,31 @@ const extension: JupyterFrontEndPlugin<void> = {
     });
 
     launcher.add({
-      command: removeBookmarkCommand.id,
-      category: TITLE,
-      rank: 2
-    });
-    launcher.add({
       command: addBookmarkLauncherCommand.id,
-      category: TITLE,
+      category: TITLE_MANAGEMENT,
       rank: 1
     });
+
+    launcher.add({
+      command: removeBookmarkCommand.id,
+      category: TITLE_MANAGEMENT,
+      rank: 2,
+      args: { category: 'all' }
+    });
+
+    launcher.add({
+      command: addCategoryCommand.id,
+      category: TITLE_MANAGEMENT,
+      rank: 3
+    });
+
+    launcher.add({
+      command: deleteCategoryCommand.id,
+      category: TITLE_MANAGEMENT,
+      rank: 4
+    });
+
+    addCategory(UNCATEGORIZED, true);
 
     console.log(
       'JupyterLab extension jupyterlab-bookmarks-extension is activated!'

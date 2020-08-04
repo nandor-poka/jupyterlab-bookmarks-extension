@@ -41,10 +41,11 @@ import {
   addAutoSyncToBookmark,
   loadSetting,
   updateSettings,
-  addCategory
+  addCategory,
+  compareBookmarkMaps
 } from './functions';
 
-import { Bookmark } from './bookmark'
+import { Bookmark } from './bookmark';
 
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
 
@@ -93,47 +94,64 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Code for startup
     // Wait for the application to be restored and
     // for the settings for this plugin to be loaded
-    Promise.all([app.restored, settingsRegistry.load(PLUGIN_ID)])
-      .then(([, settings]) => {
-        requestAPI<any>('settings').then(  async response =>{
-          if (response.result === true && new Map(response.settings.bookmarks) !== new Map(settings.get('bookmarks').composite as Array<[string, Bookmark]>)){
-            console.log(new Map(Array.from(JSON.parse(response.settings.bookmarks))))
-            console.log(new Map(settings.get('bookmarks').composite as Array<[string, Bookmark]>))
-            await settings.set('bookmarks', JSON.parse(response.settings.bookmarks))
-          }
-        })
-        // Read the settings
-        setSettingsObject(settings);
-        loadSetting(getSettingsObject());
-
-        // Listen for your plugin setting changes using Signal
-        //settingsObject.changed.connect(loadSetting);
-
-        requestAPI<any>('updateBookmarks', {
-          method: 'POST',
-          body: JSON.stringify({
-            bookmarksData: Array.from(getBookmarks().entries())
+    Promise.all([app.restored, settingsRegistry.load(PLUGIN_ID)]).then(
+      ([, settings]) => {
+        requestAPI<any>('settings')
+          .then(async response => {
+            const persistentSettings = JSON.parse(response.settings);
+            console.log(new Map(persistentSettings.bookmarks));
+            console.log(
+              new Map(settings.get('bookmarks').composite as Array<
+                [string, Bookmark]
+              >)
+            );
+            if (
+              response.result === true &&
+              !compareBookmarkMaps(
+                new Map(persistentSettings.bookmarks),
+                new Map(settings.get('bookmarks').composite as Array<
+                  [string, Bookmark]
+                >)
+              )
+            ) {
+              await settings.set('bookmarks', persistentSettings.bookmarks);
+            }
           })
-        })
-          .then(data => {
-            setBookmarks(new Map(data.bookmarks));
-            getBookmarks().forEach(bookmarkItem => {
-              addBookmark(commands, launcher, bookmarkItem, true, true);
-            });
-            updateSettings();
+          .then(() => {
+            // Read the settings
+            setSettingsObject(settings);
+            loadSetting(getSettingsObject());
+            console.log(getBookmarks());
+            // Listen for your plugin setting changes using Signal
+            //settingsObject.changed.connect(loadSetting);
+
+            requestAPI<any>('updateBookmarks', {
+              method: 'POST',
+              body: JSON.stringify({
+                bookmarksData: Array.from(getBookmarks().entries())
+              })
+            })
+              .then(data => {
+                setBookmarks(new Map(data.bookmarks));
+                getBookmarks().forEach(bookmarkItem => {
+                  addBookmark(commands, launcher, bookmarkItem, true, true);
+                });
+                updateSettings();
+              })
+              .catch(reason => {
+                window.alert(
+                  `Failed to load bookmarks from server side during startup.\n${reason}`
+                );
+              });
+            notebookTracker.currentChanged.connect(addAutoSyncToBookmark);
           })
           .catch(reason => {
             window.alert(
-              `Failed to load bookmarks from server side during startup.\n${reason}`
+              `Failed to read JupyterLab bookmarks' settings from file.\n${reason}`
             );
           });
-        notebookTracker.currentChanged.connect(addAutoSyncToBookmark);
-      })
-      .catch(reason => {
-        window.alert(
-          `Failed to read JupyterLab bookmarks' settings from file.\n${reason}`
-        );
-      });
+      }
+    );
 
     // Add command to context menu, when clicked on an open notebook.
     commands.addCommand(

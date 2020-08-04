@@ -107,11 +107,12 @@ export async function updateSettings(bookmarkItem?: Bookmark): Promise<void> {
     'bookmarks',
     JSON.parse(JSON.stringify(Array.from(getBookmarks().entries())))
   );
-  requestAPI<any>('settings',{
+  requestAPI<any>('settings', {
     method: 'POST',
-    body: 
-     `{"bookmarks":${JSON.stringify(getSettingsObject().get('bookmarks').composite)}}`
-  })
+    body: `{"bookmarks":${JSON.stringify(
+      getSettingsObject().get('bookmarks').composite
+    )}}`
+  });
 }
 
 /**
@@ -165,6 +166,12 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
     'bookmarks',
     JSON.parse(JSON.stringify(Array.from(getBookmarks().entries())))
   );
+  requestAPI<any>('settings', {
+    method: 'POST',
+    body: `{"bookmarks":${JSON.stringify(
+      getSettingsObject().get('bookmarks').composite
+    )}}`
+  });
 }
 
 /**
@@ -407,5 +414,43 @@ export function addAutoSyncToBookmark(
       notebookPanel.context.fileChanged.connect(syncBookmark);
       break;
     }
+  }
+}
+
+export function compareBookmarkMaps(
+  persistentBookmarks: Map<string, Bookmark>,
+  settingsBookmarks: Map<string, Bookmark>
+): boolean {
+  if (persistentBookmarks.size !== settingsBookmarks.size) {
+    return false;
+  } else {
+    const bookmarkIterator = persistentBookmarks.entries();
+    let persitentBookmarkEntry = bookmarkIterator.next();
+    let persistentBookmark: Bookmark;
+    let tmppersistentBookmark: Bookmark;
+    let persistentKey: string;
+    while (!persitentBookmarkEntry.done) {
+      tmppersistentBookmark = persitentBookmarkEntry.value[1];
+      persistentBookmark = new Bookmark(
+        tmppersistentBookmark.title,
+        tmppersistentBookmark.basePath,
+        tmppersistentBookmark.absPath,
+        tmppersistentBookmark.activePath,
+        tmppersistentBookmark.disabled,
+        tmppersistentBookmark.category
+      );
+      persistentKey = persitentBookmarkEntry.value[0];
+      if (!settingsBookmarks.has(persistentKey)) {
+        return false;
+      } else if (
+        !persistentBookmark.equals(settingsBookmarks.get(persistentKey))
+      ) {
+        console.log(persistentBookmark);
+        console.log(settingsBookmarks.get(persistentKey));
+        return false;
+      }
+      persitentBookmarkEntry = bookmarkIterator.next();
+    }
+    return true;
   }
 }

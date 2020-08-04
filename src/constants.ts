@@ -18,7 +18,7 @@ import { Bookmark } from './bookmark';
 
 //Global vars and exports
 export const commandPrefix = 'jupyterlab-bookmarks-extension:';
-export const VERSION = '0.5.5';
+export const VERSION = '0.5.6';
 export const TITLE_PLAIN = 'Bookmarks';
 export const TITLE_MANAGEMENT = `${TITLE_PLAIN} - Management - ${VERSION}`;
 export const TITLE = `${TITLE_PLAIN} - ${VERSION} `;

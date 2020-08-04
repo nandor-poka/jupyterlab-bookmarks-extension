@@ -99,12 +99,6 @@ const extension: JupyterFrontEndPlugin<void> = {
         requestAPI<any>('settings')
           .then(async response => {
             const persistentSettings = JSON.parse(response.settings);
-            console.log(new Map(persistentSettings.bookmarks));
-            console.log(
-              new Map(settings.get('bookmarks').composite as Array<
-                [string, Bookmark]
-              >)
-            );
             if (
               response.result === true &&
               !compareBookmarkMaps(
@@ -121,7 +115,6 @@ const extension: JupyterFrontEndPlugin<void> = {
             // Read the settings
             setSettingsObject(settings);
             loadSetting(getSettingsObject());
-            console.log(getBookmarks());
             // Listen for your plugin setting changes using Signal
             //settingsObject.changed.connect(loadSetting);
 

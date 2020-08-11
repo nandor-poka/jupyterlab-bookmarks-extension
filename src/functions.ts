@@ -32,7 +32,8 @@ import {
   setBookmarks,
   getBookmarks,
   getSettingsObject,
-  getLauncher
+  getLauncher,
+  getCommands
 } from './constants';
 import { Bookmark } from './bookmark';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -453,4 +454,72 @@ export function compareBookmarkMaps(
     }
     return true;
   }
+}
+
+export function importBookmarks(bookmarkFile: File): void {
+  requestAPI<any>('importBookmarks', {
+    method: 'POST',
+    body: bookmarkFile
+  }).then(result => {
+    if (!result.success) {
+      showErrorMessage(
+        'Error during importing bookmarks',
+        `Error occurred when importing bookmarks.\n${result.reason}`
+      );
+    }
+    if (result.success) {
+      requestAPI<any>('settings')
+        .then(async response => {
+          if (response.result === true) {
+            const persistentSettings = JSON.parse(response.settings);
+            await getSettingsObject().set(
+              'bookmarks',
+              persistentSettings.bookmarks
+            );
+          }
+        })
+        .then(() => {
+          // Clear launcher and bookmarks
+          categories.forEach((category, key) => {
+            if (key !== UNCATEGORIZED) {
+              deleteCategory(key);
+            }
+          });
+          bookmarkLaunchers.forEach(launcherItem => {
+            launcherItem.dispose();
+          });
+          // Read the settings
+          loadSetting(getSettingsObject());
+          requestAPI<any>('updateBookmarks', {
+            method: 'POST',
+            body: JSON.stringify({
+              bookmarksData: Array.from(getBookmarks().entries())
+            })
+          })
+            .then(data => {
+              setBookmarks(new Map(data.bookmarks));
+              getBookmarks().forEach(bookmarkItem => {
+                addBookmark(
+                  getCommands(),
+                  getLauncher(),
+                  bookmarkItem,
+                  true,
+                  true
+                );
+              });
+              updateSettings();
+            })
+            .catch(reason => {
+              window.alert(
+                `Failed to load bookmarks from server side during importing.\n${reason}`
+              );
+            });
+        })
+        .catch(reason => {
+          window.alert(
+            `Failed to read JupyterLab bookmarks' settings from file when importing.\n${reason}`
+          );
+        });
+    }
+  });
 }

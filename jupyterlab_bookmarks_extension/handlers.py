@@ -197,6 +197,30 @@ class SyncBookmarkHandler(APIHandler):
                 'reason': str(ex)
             }))
 
+class importBookmarksHandler(APIHandler):
+    @tornado.web.authenticated
+    def post(self):
+        
+        try:
+            with open (_settings_file_path, mode='w') as settings_file:
+                bookmark_file_content = self.get_json_body()
+                json.dump(bookmark_file_content, settings_file)
+                settings_file.close()
+            self.finish(
+                json.dumps({
+                    'success':True
+                })
+            )
+        except Exception as ex:
+            logger.error(f'Failed to import bookmarks.\n{ex}')
+            self.finish(
+                json.dumps({
+                    'success':False,
+                    'reason':f'{ex}'
+                })
+            )
+        
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
     
@@ -204,12 +228,14 @@ def setup_handlers(web_app):
     update_bookmarks_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "updateBookmarks")
     getAbsPath_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "getAbsPath")
     syncBookmark_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "syncBookmark")
-    setings_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "settings")
+    settings_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "settings")
+    import_bookmarks_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "importBookmarks")
     handlers = [
         (update_bookmarks_pattern, UpdateBookmarksHandler),
         (getAbsPath_pattern, getAbsPathHandler),
         (syncBookmark_pattern, SyncBookmarkHandler),
-        (setings_pattern, SettingsHandler)
+        (settings_pattern, SettingsHandler),
+        (import_bookmarks_pattern, importBookmarksHandler)
     ]
     web_app.add_handlers(host_pattern, handlers)
     logger.info('JupyterLab Bookmarks extension has started.')

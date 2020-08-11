@@ -22,9 +22,9 @@ import {
   addBookmarkContextMenuCommand,
   addBookmarkLauncherCommand,
   removeBookmarkCommand,
-  moveToCategoryCommand,
   addCategoryCommand,
-  deleteCategoryCommand
+  deleteCategoryCommand,
+  importBookmarksCommand
 } from './commands';
 import {
   initConstantsModule,
@@ -168,8 +168,8 @@ const extension: JupyterFrontEndPlugin<void> = {
     );
 
     commands.addCommand(
-      moveToCategoryCommand.id,
-      moveToCategoryCommand.options
+      importBookmarksCommand.id,
+      importBookmarksCommand.options
     );
 
     app.contextMenu.addItem({
@@ -201,6 +201,12 @@ const extension: JupyterFrontEndPlugin<void> = {
       command: deleteCategoryCommand.id,
       category: TITLE_MANAGEMENT,
       rank: 4
+    });
+
+    launcher.add({
+      command: importBookmarksCommand.id,
+      category: TITLE_MANAGEMENT,
+      rank: 5
     });
 
     addCategory(UNCATEGORIZED, true);

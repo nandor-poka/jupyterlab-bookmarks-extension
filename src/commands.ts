@@ -7,6 +7,7 @@
 import { closeIcon, addIcon, redoIcon } from '@jupyterlab/ui-components';
 import { FileDialog } from '@jupyterlab/filebrowser';
 import { InputDialog, showErrorMessage } from '@jupyterlab/apputils';
+import fileDialog from 'file-dialog';
 
 // Custom imports
 import {
@@ -26,7 +27,8 @@ import {
   addBookmarkItem,
   deleteBookmark,
   addCategory,
-  deleteCategory
+  deleteCategory,
+  importBookmarks
 } from './functions';
 
 /**
@@ -227,6 +229,22 @@ export const deleteCategoryCommand = {
             deleteCategory(categoryToDelete);
           }
         }
+      });
+    }
+  }
+};
+
+export const importBookmarksCommand = {
+  id: commandPrefix + 'importBookmarks',
+  options: {
+    label: 'Import bookmarks',
+    caption: 'Import bookmarks',
+    execute: (): void => {
+      fileDialog({
+        accept: '	application/json'
+      }).then(file => {
+        console.log(file[0]);
+        importBookmarks(file[0]);
       });
     }
   }

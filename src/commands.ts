@@ -20,7 +20,8 @@ import {
   getNotebookTracker,
   getCommands,
   getLauncher,
-  getDocManager
+  getDocManager,
+  IMPORT_ICON
 } from './constants';
 import {
   syncBookmark,
@@ -239,6 +240,7 @@ export const importBookmarksCommand = {
   options: {
     label: 'Import bookmarks',
     caption: 'Import bookmarks',
+    icon: IMPORT_ICON,
     execute: (): void => {
       fileDialog({
         accept: '	application/json'

@@ -523,3 +523,15 @@ export function importBookmarks(bookmarkFile: File): void {
     }
   });
 }
+
+export function exportBookmarks(bookmarkFile: File): void{
+  
+  requestAPI<any>('exportBookmarks',{
+    method:'POST',
+    body: JSON.stringify({
+      
+      'fileName':bookmarkFile.name,
+      'fileContent': bookmarkFile
+    })    
+  }).then(result => {})
+}

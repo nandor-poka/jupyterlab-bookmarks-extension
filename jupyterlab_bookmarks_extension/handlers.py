@@ -197,13 +197,19 @@ class SyncBookmarkHandler(APIHandler):
                 'reason': str(ex)
             }))
 
-class importBookmarksHandler(APIHandler):
+class ImportBookmarksHandler(APIHandler):
     @tornado.web.authenticated
     def post(self):
-        
         try:
+            bookmark_file_content = self.get_json_body()
+            if bookmark_file_content["bookmarks"] is None:
+                logger.error(f'Error during importing bookmarks from file. No bookmarks property found in JSON.');
+                self.finish(json.dumps({
+                    'success':False,
+                    'reason': 'No bookmarks found in JSON.'
+                }))
             with open (_settings_file_path, mode='w') as settings_file:
-                bookmark_file_content = self.get_json_body()
+                
                 json.dump(bookmark_file_content, settings_file)
                 settings_file.close()
             self.finish(
@@ -219,7 +225,14 @@ class importBookmarksHandler(APIHandler):
                     'reason':f'{ex}'
                 })
             )
+
+class ExportBookmarksHandler(APIHandler):
+    @tornado.web.authenticated
+    def post(self):
+        data = self.get_json_body()
+        bookmark_file_content = data["fileContent"]
         
+
 
 def setup_handlers(web_app):
     host_pattern = ".*$"
@@ -235,7 +248,7 @@ def setup_handlers(web_app):
         (getAbsPath_pattern, getAbsPathHandler),
         (syncBookmark_pattern, SyncBookmarkHandler),
         (settings_pattern, SettingsHandler),
-        (import_bookmarks_pattern, importBookmarksHandler)
+        (import_bookmarks_pattern, ImportBookmarksHandler)
     ]
     web_app.add_handlers(host_pattern, handlers)
     logger.info('JupyterLab Bookmarks extension has started.')

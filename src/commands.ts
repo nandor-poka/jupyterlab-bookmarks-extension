@@ -245,7 +245,6 @@ export const importBookmarksCommand = {
       fileDialog({
         accept: '	application/json'
       }).then(file => {
-        console.log(file[0]);
         importBookmarks(file[0]);
       });
     }

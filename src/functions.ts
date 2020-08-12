@@ -32,7 +32,8 @@ import {
   setBookmarks,
   getBookmarks,
   getSettingsObject,
-  getLauncher
+  getLauncher,
+  getCommands
 } from './constants';
 import { Bookmark } from './bookmark';
 import { ILauncher } from '@jupyterlab/launcher';
@@ -107,6 +108,12 @@ export async function updateSettings(bookmarkItem?: Bookmark): Promise<void> {
     'bookmarks',
     JSON.parse(JSON.stringify(Array.from(getBookmarks().entries())))
   );
+  requestAPI<any>('settings', {
+    method: 'POST',
+    body: `{"bookmarks":${JSON.stringify(
+      getSettingsObject().get('bookmarks').composite
+    )}}`
+  });
 }
 
 /**
@@ -160,6 +167,12 @@ export async function deleteBookmark(bookmarkToDelete: string): Promise<void> {
     'bookmarks',
     JSON.parse(JSON.stringify(Array.from(getBookmarks().entries())))
   );
+  requestAPI<any>('settings', {
+    method: 'POST',
+    body: `{"bookmarks":${JSON.stringify(
+      getSettingsObject().get('bookmarks').composite
+    )}}`
+  });
 }
 
 /**
@@ -351,9 +364,8 @@ export async function addBookmarkItem(
 export function syncBookmark(
   bookmarkedNotebookModel: DocumentRegistry.IContext<INotebookModel>
 ): void {
-  let iterartorBookmark: Bookmark;
   for (const bookmarkKey in getBookmarks().keys) {
-    iterartorBookmark = getBookmarks().get(bookmarkKey);
+    const iterartorBookmark: Bookmark = getBookmarks().get(bookmarkKey);
     if (
       iterartorBookmark.activePath.startsWith('.tmp') &&
       iterartorBookmark.absPath === bookmarkedNotebookModel.path
@@ -391,9 +403,8 @@ export function addAutoSyncToBookmark(
   notebookTracker: INotebookTracker,
   notebookPanel: NotebookPanel
 ): void {
-  let iterartorBookmark: Bookmark;
   for (const bookmarkKey in getBookmarks().keys) {
-    iterartorBookmark = getBookmarks().get(bookmarkKey);
+    const iterartorBookmark: Bookmark = getBookmarks().get(bookmarkKey);
     if (
       iterartorBookmark.activePath.startsWith('.tmp') &&
       iterartorBookmark.absPath === notebookPanel.context.path
@@ -403,4 +414,148 @@ export function addAutoSyncToBookmark(
       break;
     }
   }
+}
+
+/**
+ * Compares two `Map<string, Bookmark>` instances if they are the same or not.
+ * Returns `True` if and only if the two maps have the exact same entries.
+ * For this the function compares all properties of the Bookmarks in the maps one by one.
+ * Immediately returns `false` if the `Maps` are of different sizes, and
+ * if the one of the Maps doesn't have an entry from the other.
+ * @param persistentBookmarks
+ * @param settingsBookmarks
+ * @returns `boolean`
+ */
+export function compareBookmarkMaps(
+  persistentBookmarks: Map<string, Bookmark>,
+  settingsBookmarks: Map<string, Bookmark>
+): boolean {
+  if (persistentBookmarks.size !== settingsBookmarks.size) {
+    return false;
+  } else {
+    const bookmarkIterator = persistentBookmarks.entries();
+    let persitentBookmarkEntry = bookmarkIterator.next();
+    let persistentBookmark: Bookmark;
+    let tmppersistentBookmark: Bookmark;
+    let persistentKey: string;
+    while (!persitentBookmarkEntry.done) {
+      tmppersistentBookmark = persitentBookmarkEntry.value[1];
+      persistentBookmark = new Bookmark(
+        tmppersistentBookmark.title,
+        tmppersistentBookmark.basePath,
+        tmppersistentBookmark.absPath,
+        tmppersistentBookmark.activePath,
+        tmppersistentBookmark.disabled,
+        tmppersistentBookmark.category
+      );
+      persistentKey = persitentBookmarkEntry.value[0];
+      if (!settingsBookmarks.has(persistentKey)) {
+        return false;
+      } else if (
+        !persistentBookmark.equals(settingsBookmarks.get(persistentKey))
+      ) {
+        return false;
+      }
+      persitentBookmarkEntry = bookmarkIterator.next();
+    }
+    return true;
+  }
+}
+/**
+ * Imports the bookmarks stored in the JSON file stored in the argument.
+ * @param bookmarkFile
+ */
+export function importBookmarks(bookmarkFile: File): void {
+  requestAPI<any>('importBookmarks', {
+    method: 'POST',
+    body: bookmarkFile
+  }).then(result => {
+    if (!result.success) {
+      showErrorMessage(
+        'Error during importing bookmarks',
+        `Error occurred when importing bookmarks.\n${result.reason}`
+      );
+    }
+    if (result.success) {
+      requestAPI<any>('settings')
+        .then(async response => {
+          if (response.result === true) {
+            const persistentSettings = JSON.parse(response.settings);
+            await getSettingsObject().set(
+              'bookmarks',
+              persistentSettings.bookmarks
+            );
+          }
+        })
+        .then(() => {
+          // Clear launcher and bookmarks
+          categories.forEach((category, key) => {
+            if (key !== UNCATEGORIZED) {
+              deleteCategory(key);
+            }
+          });
+          bookmarkLaunchers.forEach(launcherItem => {
+            launcherItem.dispose();
+          });
+          // Read the settings
+          loadSetting(getSettingsObject());
+          requestAPI<any>('updateBookmarks', {
+            method: 'POST',
+            body: JSON.stringify({
+              bookmarksData: Array.from(getBookmarks().entries())
+            })
+          })
+            .then(data => {
+              setBookmarks(new Map(data.bookmarks));
+              getBookmarks().forEach(bookmarkItem => {
+                addBookmark(
+                  getCommands(),
+                  getLauncher(),
+                  bookmarkItem,
+                  true,
+                  true
+                );
+              });
+              updateSettings();
+            })
+            .catch(reason => {
+              window.alert(
+                `Failed to load bookmarks from server side during importing.\n${reason}`
+              );
+            });
+        })
+        .catch(reason => {
+          window.alert(
+            `Failed to read JupyterLab bookmarks' settings from file when importing.\n${reason}`
+          );
+        });
+    }
+  });
+}
+
+/**
+ * Exports current bookmarks. Opens up browser native save dialog thus
+ * the user can save the file in the desired location.
+ */
+export async function exportBookmarks(): Promise<void> {
+  requestAPI<any>('exportBookmarks', {}).then(result => {
+    if (result.success === false) {
+      showErrorMessage(
+        'Failed to export bookmarks',
+        `Failed to export bookmarks.\n${result.reason}`
+      );
+    } else {
+      const element = document.createElement('a');
+      element.setAttribute(
+        'href',
+        'data:application/json;charset=utf-8,' +
+          encodeURIComponent(result.content)
+      );
+      element.setAttribute('download', 'JL-Bookmarks.json');
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+  });
 }

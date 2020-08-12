@@ -7,8 +7,18 @@ import os
 import logging
 import shutil
 
-_log_file_path = os.path.join(os.environ["HOME"], 'JL-Bookmarks.log')
+_extension_home_dir = os.path.join(os.environ["HOME"],'.jl-bookmarks')
+if not os.path.exists(_extension_home_dir):
+    ## Create <USER_HOME/.jl-bookmarks dir if it doesn't exists.
+    try:
+        os.mkdir(_extension_home_dir)
 
+    except OSError:
+        print(f'Could not create extension home dir at: {_extension_home_dir}')
+
+
+_log_file_path = os.path.join(os.environ["HOME"],'.jl-bookmarks', 'JL-Bookmarks.log')
+_settings_file_path = os.path.join(os.environ["HOME"],'.jl-bookmarks', 'settings.json')
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
@@ -18,6 +28,73 @@ logger.addHandler(logFileHandler)
 logger.propagate=False
 
 _bookmarks = None
+
+class SettingsHandler(APIHandler):
+    # Saving extension settings to disk, thus making it persistent.
+
+    @tornado.web.authenticated
+    def get(self):
+        if not os.path.exists(_settings_file_path):
+            self.finish(
+                json.dumps({
+                    'result': False,
+                    'reason':'Settings file does not exist.'
+                })
+            )
+        else:
+            try:
+                with open (_settings_file_path, mode='r') as settings_file:
+                    settings = settings_file.read()
+                    settings_file.close()
+                    self.finish(
+                        json.dumps({
+                            'result': True,
+                            'settings': settings
+                        })
+                    )
+            except OSError as ex:
+                logger.exception(f'Failed to read settings file at {_settings_file_path}.\n{ex}')
+                self.finish(
+                    json.dumps({
+                        'result': False,
+                        'reason': f'Failed to read settings file at {_settings_file_path}.\n{ex}'
+                    })
+                )
+
+    @tornado.web.authenticated
+    def post(self):
+        if not os.path.exists(_extension_home_dir):
+        ## Create <USER_HOME/.jl-bookmarks dir if it doesn't exists.
+            try:
+                os.mkdir(_extension_home_dir)
+            except OSError as ex:
+                logger.exception(f'Failed to save settings. Extension home directory does not exist and could not create it\n{ex}')
+                self.finish(
+                    json.dumps({
+                        'result': False,
+                        'reason': f'Failed to save settings. Extension home directory does not exist and could not create it\n{ex}'
+                    })
+                )
+        else:
+            try:
+                with open (_settings_file_path, mode='w') as settings_file:
+                    settings = self.get_json_body()
+                    settings_file.write(
+                        json.dumps({
+                            'bookmarks':settings["bookmarks"]
+                        })
+                    )
+                    settings_file.close()
+                    self.finish(
+                        json.dumps({
+                            'result': True
+                        })
+                    )
+            except Exception as ex:
+                logger.exception(f'Failed to save settings.\n{ex}')
+                self.finish(
+                    json.dump
+                )
 
 class UpdateBookmarksHandler(APIHandler):
     @property
@@ -82,7 +159,7 @@ class UpdateBookmarksHandler(APIHandler):
         except Exception as ex:
             logger.exception(f'Startup failed because: {ex}')
             self.finish({})
-            
+
 class getAbsPathHandler(APIHandler):
 
     @tornado.web.authenticated
@@ -122,6 +199,54 @@ class SyncBookmarkHandler(APIHandler):
                 'reason': str(ex)
             }))
 
+class ImportBookmarksHandler(APIHandler):
+    @tornado.web.authenticated
+    def post(self):
+        try:
+            bookmark_file_content = self.get_json_body()
+            if bookmark_file_content["bookmarks"] is None:
+                logger.error('Error during importing bookmarks from file. No bookmarks property found in JSON.')
+                self.finish(json.dumps({
+                    'success':False,
+                    'reason': 'No bookmarks found in JSON.'
+                }))
+            with open (_settings_file_path, mode='w') as settings_file:
+                json.dump(bookmark_file_content, settings_file)
+                settings_file.close()
+            self.finish(
+                json.dumps({
+                    'success':True
+                })
+            )
+        except Exception as ex:
+            logger.error(f'Failed to import bookmarks.\n{ex}')
+            self.finish(
+                json.dumps({
+                    'success':False,
+                    'reason':f'{ex}'
+                })
+            )
+
+class ExportBookmarksHandler(APIHandler):
+    @tornado.web.authenticated
+    def get(self):
+        try:
+            with open (_settings_file_path, mode='r') as settings_file:
+                data = settings_file.read()
+                settings_file.close()
+            self.finish(json.dumps({
+                'success': True,
+                'content': data
+            }))
+        except OSError as ex:
+            logger.error(f'Failed to export bookmarks.\n{ex}')
+            self.clear_header('Content-Disposition')
+            self.set_header('Content-Type', 'application/json')
+            self.finish(json.dumps({
+                'success': False,
+                'reason': str(ex)
+            }))
+
 def setup_handlers(web_app):
     host_pattern = ".*$"
     
@@ -129,10 +254,16 @@ def setup_handlers(web_app):
     update_bookmarks_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "updateBookmarks")
     getAbsPath_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "getAbsPath")
     syncBookmark_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "syncBookmark")
+    settings_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "settings")
+    import_bookmarks_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "importBookmarks")
+    export_bookmarks_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "exportBookmarks")
     handlers = [
         (update_bookmarks_pattern, UpdateBookmarksHandler),
         (getAbsPath_pattern, getAbsPathHandler),
-        (syncBookmark_pattern, SyncBookmarkHandler)
-        ]
+        (syncBookmark_pattern, SyncBookmarkHandler),
+        (settings_pattern, SettingsHandler),
+        (import_bookmarks_pattern, ImportBookmarksHandler),
+        (export_bookmarks_pattern, ExportBookmarksHandler)
+    ]
     web_app.add_handlers(host_pattern, handlers)
     logger.info('JupyterLab Bookmarks extension has started.')

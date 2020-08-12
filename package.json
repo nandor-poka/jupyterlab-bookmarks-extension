@@ -1,6 +1,6 @@
 {
   "name": "jupyterlab-bookmarks-extension",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "A JupyterLab extension to provide Launcher icons for favorites. Allows 'bookmarking' files for quick access from the Launcher.",
   "keywords": [
     "jupyter",
@@ -28,7 +28,7 @@
     "type": "git",
     "url": "https://github.com/nandor-poka/jupyterlab-bookmarks-extension.git"
   },
-  "scripts": { 
+  "scripts": {
     "build": "jlpm run build:lib",
     "build:labextension": "cd jupyterlab_bookmarks_extension && rimraf labextension && mkdirp labextension && cd labextension && npm pack ../..",
     "build:lib": "tsc",
@@ -37,7 +37,6 @@
     "clean:lib": "rimraf lib tsconfig.tsbuildinfo",
     "clean:labextension": "rimraf jupyterlab_bookmarks_extension/labextension",
     "clean:all": "jlpm run clean:lib && jlpm run clean:labextension",
-
     "eslint": "eslint . --ext .ts,.tsx --fix",
     "eslint:check": "eslint . --ext .ts,.tsx",
     "prepare": "jlpm run clean && jlpm run build",
@@ -46,18 +45,19 @@
   "dependencies": {
     "@jupyterlab/application": "^2.2.0",
     "@jupyterlab/coreutils": "^4.0.0",
-    "@jupyterlab/services": "^5.0.0",
     "@jupyterlab/launcher": "^2.2.0",
     "@jupyterlab/mainmenu": "^2.2.0",
-    "@jupyterlab/notebook": "^2.2.0"
+    "@jupyterlab/notebook": "^2.2.0",
+    "@jupyterlab/services": "^5.0.0",
+    "file-dialog": "^0.0.8"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^2.25.0",
     "@typescript-eslint/parser": "^2.25.0",
     "eslint": "^6.8.0",
     "eslint-config-prettier": "^6.10.1",
-    "eslint-plugin-prettier": "^3.1.2", 
-    "mkdirp": "^1.0.3", 
+    "eslint-plugin-prettier": "^3.1.2",
+    "mkdirp": "^1.0.3",
     "prettier": "1.16.4",
     "rimraf": "^2.6.1",
     "typescript": "~3.7.0"
@@ -65,17 +65,17 @@
   "sideEffects": [
     "style/*.css"
   ],
-  "jupyterlab": { 
+  "jupyterlab": {
     "discovery": {
-        "server": {
-          "managers": [
-            "pip"
-          ],
-          "base": {
-            "name": "jupyterlab_bookmarks_extension"
-          }
+      "server": {
+        "managers": [
+          "pip"
+        ],
+        "base": {
+          "name": "jupyterlab_bookmarks_extension"
         }
-    }, 
+      }
+    },
     "extension": true,
     "schemaDir": "schema"
   }

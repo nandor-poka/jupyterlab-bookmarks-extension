@@ -7,6 +7,7 @@
 import { closeIcon, addIcon, redoIcon } from '@jupyterlab/ui-components';
 import { FileDialog } from '@jupyterlab/filebrowser';
 import { InputDialog, showErrorMessage } from '@jupyterlab/apputils';
+import fileDialog from 'file-dialog';
 
 // Custom imports
 import {
@@ -19,14 +20,18 @@ import {
   getNotebookTracker,
   getCommands,
   getLauncher,
-  getDocManager
+  getDocManager,
+  IMPORT_ICON,
+  EXPORT_ICON
 } from './constants';
 import {
   syncBookmark,
   addBookmarkItem,
   deleteBookmark,
   addCategory,
-  deleteCategory
+  deleteCategory,
+  importBookmarks,
+  exportBookmarks
 } from './functions';
 
 /**
@@ -228,6 +233,42 @@ export const deleteCategoryCommand = {
           }
         }
       });
+    }
+  }
+};
+
+/**
+ * Command used for importing bookmarks. Opens browser-native Open file
+ * dialog, so that user can select the appropriate JSON file.
+ * File type is limited to JSON.
+ */
+export const importBookmarksCommand = {
+  id: commandPrefix + 'importBookmarks',
+  options: {
+    label: 'Import bookmarks',
+    caption: 'Import bookmarks',
+    icon: IMPORT_ICON,
+    execute: (): void => {
+      fileDialog({
+        accept: '	application/json'
+      }).then(file => {
+        importBookmarks(file[0]);
+      });
+    }
+  }
+};
+
+/**
+ * Command used for exporting bookmarks.
+ */
+export const exportBookmarksCommand = {
+  id: commandPrefix + 'exportBookmarks',
+  options: {
+    label: 'Export bookmarks',
+    caption: 'Export bookmarks',
+    icon: EXPORT_ICON,
+    execute: (): void => {
+      exportBookmarks();
     }
   }
 };

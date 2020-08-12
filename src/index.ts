@@ -22,9 +22,10 @@ import {
   addBookmarkContextMenuCommand,
   addBookmarkLauncherCommand,
   removeBookmarkCommand,
-  moveToCategoryCommand,
   addCategoryCommand,
-  deleteCategoryCommand
+  deleteCategoryCommand,
+  importBookmarksCommand,
+  exportBookmarksCommand
 } from './commands';
 import {
   initConstantsModule,
@@ -41,8 +42,11 @@ import {
   addAutoSyncToBookmark,
   loadSetting,
   updateSettings,
-  addCategory
+  addCategory,
+  compareBookmarkMaps
 } from './functions';
+
+import { Bookmark } from './bookmark';
 
 const PLUGIN_ID = 'jupyterlab-bookmarks-extension:bookmarks';
 
@@ -91,40 +95,58 @@ const extension: JupyterFrontEndPlugin<void> = {
     // Code for startup
     // Wait for the application to be restored and
     // for the settings for this plugin to be loaded
-    Promise.all([app.restored, settingsRegistry.load(PLUGIN_ID)])
-      .then(([, settings]) => {
-        // Read the settings
-        setSettingsObject(settings);
-        loadSetting(getSettingsObject());
-
-        // Listen for your plugin setting changes using Signal
-        //settingsObject.changed.connect(loadSetting);
-
-        requestAPI<any>('updateBookmarks', {
-          method: 'POST',
-          body: JSON.stringify({
-            bookmarksData: Array.from(getBookmarks().entries())
+    Promise.all([app.restored, settingsRegistry.load(PLUGIN_ID)]).then(
+      ([, settings]) => {
+        requestAPI<any>('settings')
+          .then(async response => {
+            if (response.result === true) {
+              const persistentSettings = JSON.parse(response.settings);
+              if (
+                !compareBookmarkMaps(
+                  new Map(persistentSettings.bookmarks),
+                  new Map(settings.get('bookmarks').composite as Array<
+                    [string, Bookmark]
+                  >)
+                )
+              ) {
+                await settings.set('bookmarks', persistentSettings.bookmarks);
+              }
+            }
           })
-        })
-          .then(data => {
-            setBookmarks(new Map(data.bookmarks));
-            getBookmarks().forEach(bookmarkItem => {
-              addBookmark(commands, launcher, bookmarkItem, true, true);
-            });
-            updateSettings();
+          .then(() => {
+            // Read the settings
+            setSettingsObject(settings);
+            loadSetting(getSettingsObject());
+            // Listen for your plugin setting changes using Signal
+            //settingsObject.changed.connect(loadSetting);
+
+            requestAPI<any>('updateBookmarks', {
+              method: 'POST',
+              body: JSON.stringify({
+                bookmarksData: Array.from(getBookmarks().entries())
+              })
+            })
+              .then(data => {
+                setBookmarks(new Map(data.bookmarks));
+                getBookmarks().forEach(bookmarkItem => {
+                  addBookmark(commands, launcher, bookmarkItem, true, true);
+                });
+                updateSettings();
+              })
+              .catch(reason => {
+                window.alert(
+                  `Failed to load bookmarks from server side during startup.\n${reason}`
+                );
+              });
+            notebookTracker.currentChanged.connect(addAutoSyncToBookmark);
           })
           .catch(reason => {
             window.alert(
-              `Failed to load bookmarks from server side during startup.\n${reason}`
+              `Failed to read JupyterLab bookmarks' settings from file.\n${reason}`
             );
           });
-        notebookTracker.currentChanged.connect(addAutoSyncToBookmark);
-      })
-      .catch(reason => {
-        window.alert(
-          `Failed to read JupyterLab bookmarks' settings from file.\n${reason}`
-        );
-      });
+      }
+    );
 
     // Add command to context menu, when clicked on an open notebook.
     commands.addCommand(
@@ -148,8 +170,13 @@ const extension: JupyterFrontEndPlugin<void> = {
     );
 
     commands.addCommand(
-      moveToCategoryCommand.id,
-      moveToCategoryCommand.options
+      importBookmarksCommand.id,
+      importBookmarksCommand.options
+    );
+
+    commands.addCommand(
+      exportBookmarksCommand.id,
+      exportBookmarksCommand.options
     );
 
     app.contextMenu.addItem({
@@ -181,6 +208,18 @@ const extension: JupyterFrontEndPlugin<void> = {
       command: deleteCategoryCommand.id,
       category: TITLE_MANAGEMENT,
       rank: 4
+    });
+
+    launcher.add({
+      command: importBookmarksCommand.id,
+      category: TITLE_MANAGEMENT,
+      rank: 5
+    });
+
+    launcher.add({
+      command: exportBookmarksCommand.id,
+      category: TITLE_MANAGEMENT,
+      rank: 6
     });
 
     addCategory(UNCATEGORIZED, true);

@@ -24,7 +24,8 @@ import {
   removeBookmarkCommand,
   addCategoryCommand,
   deleteCategoryCommand,
-  importBookmarksCommand
+  importBookmarksCommand,
+  exportBookmarksCommand
 } from './commands';
 import {
   initConstantsModule,
@@ -172,6 +173,11 @@ const extension: JupyterFrontEndPlugin<void> = {
       importBookmarksCommand.options
     );
 
+    commands.addCommand(
+      exportBookmarksCommand.id,
+      exportBookmarksCommand.options
+    );
+
     app.contextMenu.addItem({
       command: addBookmarkContextMenuCommand.id,
       selector: '.jp-Notebook',
@@ -207,6 +213,12 @@ const extension: JupyterFrontEndPlugin<void> = {
       command: importBookmarksCommand.id,
       category: TITLE_MANAGEMENT,
       rank: 5
+    });
+
+    launcher.add({
+      command: exportBookmarksCommand.id,
+      category: TITLE_MANAGEMENT,
+      rank: 6
     });
 
     addCategory(UNCATEGORIZED, true);

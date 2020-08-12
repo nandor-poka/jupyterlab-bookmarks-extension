@@ -524,14 +524,25 @@ export function importBookmarks(bookmarkFile: File): void {
   });
 }
 
-export function exportBookmarks(bookmarkFile: File): void{
-  
-  requestAPI<any>('exportBookmarks',{
-    method:'POST',
-    body: JSON.stringify({
-      
-      'fileName':bookmarkFile.name,
-      'fileContent': bookmarkFile
-    })    
-  }).then(result => {})
+export async function exportBookmarks(): Promise<void> {
+  requestAPI<any>('exportBookmarks', {}).then(result => {
+    if (result.success === false) {
+      showErrorMessage(
+        'Failed to export bookmarks',
+        `Failed to export bookmarks.\n${result.reason}`
+      );
+    } else {
+      const element = document.createElement('a');
+      element.setAttribute(
+        'href',
+        'data:application/json;charset=utf-8,' +
+          encodeURIComponent(result.content)
+      );
+      element.setAttribute('download', 'JL-Bookmarks.json');
+      element.style.display = 'none';
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
+  });
 }

@@ -203,7 +203,7 @@ class ImportBookmarksHandler(APIHandler):
         try:
             bookmark_file_content = self.get_json_body()
             if bookmark_file_content["bookmarks"] is None:
-                logger.error(f'Error during importing bookmarks from file. No bookmarks property found in JSON.');
+                logger.error(f'Error during importing bookmarks from file. No bookmarks property found in JSON.')
                 self.finish(json.dumps({
                     'success':False,
                     'reason': 'No bookmarks found in JSON.'
@@ -228,11 +228,23 @@ class ImportBookmarksHandler(APIHandler):
 
 class ExportBookmarksHandler(APIHandler):
     @tornado.web.authenticated
-    def post(self):
-        data = self.get_json_body()
-        bookmark_file_content = data["fileContent"]
-        
-
+    def get(self):   
+        try:
+            with open (_settings_file_path, mode='r') as settings_file:
+                data = settings_file.read()
+                settings_file.close()
+            self.finish(json.dumps({
+                'success': True,
+                'content': data
+            }))
+        except OSError as ex:
+            logger.error(f'Failed to export bookmarks.\n{ex}')
+            self.clear_header('Content-Disposition')
+            self.set_header('Content-Type', 'application/json')
+            self.finish(json.dumps({
+                'success': False,
+                'reason': str(ex)
+            }))
 
 def setup_handlers(web_app):
     host_pattern = ".*$"
@@ -243,12 +255,14 @@ def setup_handlers(web_app):
     syncBookmark_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "syncBookmark")
     settings_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "settings")
     import_bookmarks_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "importBookmarks")
+    export_bookmarks_pattern = url_path_join(base_url, "jupyterlab-bookmarks-extension", "exportBookmarks")
     handlers = [
         (update_bookmarks_pattern, UpdateBookmarksHandler),
         (getAbsPath_pattern, getAbsPathHandler),
         (syncBookmark_pattern, SyncBookmarkHandler),
         (settings_pattern, SettingsHandler),
-        (import_bookmarks_pattern, ImportBookmarksHandler)
+        (import_bookmarks_pattern, ImportBookmarksHandler),
+        (export_bookmarks_pattern, ExportBookmarksHandler)
     ]
     web_app.add_handlers(host_pattern, handlers)
     logger.info('JupyterLab Bookmarks extension has started.')

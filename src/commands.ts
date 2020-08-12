@@ -21,7 +21,8 @@ import {
   getCommands,
   getLauncher,
   getDocManager,
-  IMPORT_ICON
+  IMPORT_ICON,
+  EXPORT_ICON
 } from './constants';
 import {
   syncBookmark,
@@ -29,7 +30,8 @@ import {
   deleteBookmark,
   addCategory,
   deleteCategory,
-  importBookmarks
+  importBookmarks,
+  exportBookmarks
 } from './functions';
 
 /**
@@ -247,6 +249,18 @@ export const importBookmarksCommand = {
       }).then(file => {
         importBookmarks(file[0]);
       });
+    }
+  }
+};
+
+export const exportBookmarksCommand = {
+  id: commandPrefix + 'exportBookmarks',
+  options: {
+    label: 'Export bookmarks',
+    caption: 'Export bookmarks',
+    icon: EXPORT_ICON,
+    execute: (): void => {
+      exportBookmarks();
     }
   }
 };

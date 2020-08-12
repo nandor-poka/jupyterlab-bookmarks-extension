@@ -14,7 +14,8 @@ import { ISettingRegistry } from '@jupyterlab/settingregistry';
 
 // Custom imports
 import favorite from '../style/favorite.svg';
-import importicon from '../style/import.svg';
+import importIcon from '../style/import.svg';
+import exportIcon from '../style/export.svg';
 import { Bookmark } from './bookmark';
 
 //Global vars and exports
@@ -32,7 +33,11 @@ export const FAVORITE_ICON = new LabIcon({
 });
 export const IMPORT_ICON = new LabIcon({
   name: commandPrefix + 'ImportIcon',
-  svgstr: importicon
+  svgstr: importIcon
+});
+export const EXPORT_ICON = new LabIcon({
+  name: commandPrefix + 'ExportIcon',
+  svgstr: exportIcon
 });
 
 // internal variables accessed via exported getters, cannot be directly redefined.

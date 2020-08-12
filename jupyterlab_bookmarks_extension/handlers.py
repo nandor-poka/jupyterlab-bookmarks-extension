@@ -211,7 +211,6 @@ class ImportBookmarksHandler(APIHandler):
                     'reason': 'No bookmarks found in JSON.'
                 }))
             with open (_settings_file_path, mode='w') as settings_file:
-                
                 json.dump(bookmark_file_content, settings_file)
                 settings_file.close()
             self.finish(

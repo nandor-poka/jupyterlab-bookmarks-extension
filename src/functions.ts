@@ -364,9 +364,8 @@ export async function addBookmarkItem(
 export function syncBookmark(
   bookmarkedNotebookModel: DocumentRegistry.IContext<INotebookModel>
 ): void {
-  let iterartorBookmark: Bookmark;
   for (const bookmarkKey in getBookmarks().keys) {
-    iterartorBookmark = getBookmarks().get(bookmarkKey);
+    let iterartorBookmark: Bookmark = getBookmarks().get(bookmarkKey);
     if (
       iterartorBookmark.activePath.startsWith('.tmp') &&
       iterartorBookmark.absPath === bookmarkedNotebookModel.path
@@ -404,9 +403,9 @@ export function addAutoSyncToBookmark(
   notebookTracker: INotebookTracker,
   notebookPanel: NotebookPanel
 ): void {
-  let iterartorBookmark: Bookmark;
+  
   for (const bookmarkKey in getBookmarks().keys) {
-    iterartorBookmark = getBookmarks().get(bookmarkKey);
+    let iterartorBookmark: Bookmark = getBookmarks().get(bookmarkKey);
     if (
       iterartorBookmark.activePath.startsWith('.tmp') &&
       iterartorBookmark.absPath === notebookPanel.context.path

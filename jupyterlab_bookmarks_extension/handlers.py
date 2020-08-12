@@ -157,7 +157,7 @@ class UpdateBookmarksHandler(APIHandler):
         except Exception as ex:
             logger.exception(f'Startup failed because: {ex}')
             self.finish({})
-            
+
 class getAbsPathHandler(APIHandler):
 
     @tornado.web.authenticated
@@ -228,7 +228,7 @@ class ImportBookmarksHandler(APIHandler):
 
 class ExportBookmarksHandler(APIHandler):
     @tornado.web.authenticated
-    def get(self):   
+    def get(self):
         try:
             with open (_settings_file_path, mode='r') as settings_file:
                 data = settings_file.read()

@@ -19,22 +19,55 @@ import exportIcon from '../style/export.svg';
 import { Bookmark } from './bookmark';
 
 //Global vars and exports
+/**
+ * Prefix string used for commands and icons for this extension. 
+ */
 export const commandPrefix = 'jupyterlab-bookmarks-extension:';
+/**
+ * Verion string.
+ */
 export const VERSION = '0.5.6';
+/**
+ * String for plain title in the Launcher.
+ */
 export const TITLE_PLAIN = 'Bookmarks';
+/**
+ * String for the `Bookmark management` Launcher category.
+ */
 export const TITLE_MANAGEMENT = `${TITLE_PLAIN} - Management - ${VERSION}`;
+/**
+ * String for the generic title in the Launcher
+ */
 export const TITLE = `${TITLE_PLAIN} - ${VERSION} `;
+/**
+ * String for the `Disabled` bookmark Launcher category.
+ */
 export const DISABLED_TITLE = `Disabled bookmarks - ${VERSION}`;
+/**
+ * String constant for the `Factory` property to use when adding open command.
+ */
 export const NOTEBOOK_FACTORY = 'Notebook';
+/**
+ * STring constant for the `Uncategorized` Launcher category.
+ */
 export const UNCATEGORIZED = 'Uncategorized';
+/**
+ * Icon used for the `Add favorite` command.
+ */
 export const FAVORITE_ICON = new LabIcon({
   name: commandPrefix + 'FavoriteIcon',
   svgstr: favorite
 });
+/**
+ * Icon used for the `Import bookmark` command.
+ */
 export const IMPORT_ICON = new LabIcon({
   name: commandPrefix + 'ImportIcon',
   svgstr: importIcon
 });
+/**
+ * Icon used for the `Export bookmark` command.
+ */
 export const EXPORT_ICON = new LabIcon({
   name: commandPrefix + 'ExportIcon',
   svgstr: exportIcon

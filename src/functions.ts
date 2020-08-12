@@ -416,6 +416,16 @@ export function addAutoSyncToBookmark(
   }
 }
 
+/**
+ * Compares two `Map<string, Bookmark>` instances if they are the same or not.
+ * Returns `True` if and only if the two maps have the exact same entries.
+ * For this the function compares all properties of the Bookmarks in the maps one by one.
+ * Immediately returns `false` if the `Maps` are of different sizes, and
+ * if the one of the Maps doesn't have an entry from the other.
+ * @param persistentBookmarks 
+ * @param settingsBookmarks 
+ * @returns `boolean`
+ */
 export function compareBookmarkMaps(
   persistentBookmarks: Map<string, Bookmark>,
   settingsBookmarks: Map<string, Bookmark>
@@ -451,7 +461,10 @@ export function compareBookmarkMaps(
     return true;
   }
 }
-
+/**
+ * Imports the bookmarks stored in the JSON file stored in the argument.
+ * @param bookmarkFile 
+ */
 export function importBookmarks(bookmarkFile: File): void {
   requestAPI<any>('importBookmarks', {
     method: 'POST',
@@ -520,6 +533,10 @@ export function importBookmarks(bookmarkFile: File): void {
   });
 }
 
+/**
+ * Exports current bookmarks. Opens up browser native save dialog thus
+ * the user can save the file in the desired location.
+ */
 export async function exportBookmarks(): Promise<void> {
   requestAPI<any>('exportBookmarks', {}).then(result => {
     if (result.success === false) {

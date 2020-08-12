@@ -446,8 +446,6 @@ export function compareBookmarkMaps(
       } else if (
         !persistentBookmark.equals(settingsBookmarks.get(persistentKey))
       ) {
-        console.log(persistentBookmark);
-        console.log(settingsBookmarks.get(persistentKey));
         return false;
       }
       persitentBookmarkEntry = bookmarkIterator.next();

@@ -59,7 +59,7 @@ class SettingsHandler(APIHandler):
                     'reason': f'Failed to read settings file at {_settings_file_path}.\n{ex}'
                 })
             )
-        
+
     @tornado.web.authenticated
     def post(self):
         if not os.path.exists(_extension_home_dir):
@@ -203,7 +203,7 @@ class ImportBookmarksHandler(APIHandler):
         try:
             bookmark_file_content = self.get_json_body()
             if bookmark_file_content["bookmarks"] is None:
-                logger.error(f'Error during importing bookmarks from file. No bookmarks property found in JSON.')
+                logger.error('Error during importing bookmarks from file. No bookmarks property found in JSON.')
                 self.finish(json.dumps({
                     'success':False,
                     'reason': 'No bookmarks found in JSON.'

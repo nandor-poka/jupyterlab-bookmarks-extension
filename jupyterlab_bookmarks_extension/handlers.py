@@ -41,24 +41,25 @@ class SettingsHandler(APIHandler):
                     'reason':'Settings file does not exist.'
                 })
             )
-        try:
-            with open (_settings_file_path, mode='r') as settings_file:
-                settings = settings_file.read()
-                settings_file.close()
+        else:
+            try:
+                with open (_settings_file_path, mode='r') as settings_file:
+                    settings = settings_file.read()
+                    settings_file.close()
+                    self.finish(
+                        json.dumps({
+                            'result': True,
+                            'settings': settings
+                        })
+                    )
+            except OSError as ex:
+                logger.exception(f'Failed to read settings file at {_settings_file_path}.\n{ex}')
                 self.finish(
                     json.dumps({
-                        'result': True,
-                        'settings': settings
+                        'result': False,
+                        'reason': f'Failed to read settings file at {_settings_file_path}.\n{ex}'
                     })
                 )
-        except OSError as ex:
-            logger.exception(f'Failed to read settings file at {_settings_file_path}.\n{ex}')
-            self.finish(
-                json.dumps({
-                    'result': False,
-                    'reason': f'Failed to read settings file at {_settings_file_path}.\n{ex}'
-                })
-            )
 
     @tornado.web.authenticated
     def post(self):
@@ -74,25 +75,26 @@ class SettingsHandler(APIHandler):
                         'reason': f'Failed to save settings. Extension home directory does not exist and could not create it\n{ex}'
                     })
                 )
-        try:
-            with open (_settings_file_path, mode='w') as settings_file:
-                settings = self.get_json_body()
-                settings_file.write(
-                    json.dumps({
-                        'bookmarks':settings["bookmarks"]
-                    })
-                )
-                settings_file.close()
+        else:
+            try:
+                with open (_settings_file_path, mode='w') as settings_file:
+                    settings = self.get_json_body()
+                    settings_file.write(
+                        json.dumps({
+                            'bookmarks':settings["bookmarks"]
+                        })
+                    )
+                    settings_file.close()
+                    self.finish(
+                        json.dumps({
+                            'result': True
+                        })
+                    )
+            except Exception as ex:
+                logger.exception(f'Failed to save settings.\n{ex}')
                 self.finish(
-                    json.dumps({
-                        'result': True
-                    })
+                    json.dump
                 )
-        except Exception as ex:
-            logger.exception(f'Failed to save settings.\n{ex}')
-            self.finish(
-                json.dump
-            )
 
 class UpdateBookmarksHandler(APIHandler):
     @property

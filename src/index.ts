@@ -99,17 +99,18 @@ const extension: JupyterFrontEndPlugin<void> = {
       ([, settings]) => {
         requestAPI<any>('settings')
           .then(async response => {
-            const persistentSettings = JSON.parse(response.settings);
-            if (
-              response.result === true &&
-              !compareBookmarkMaps(
-                new Map(persistentSettings.bookmarks),
-                new Map(settings.get('bookmarks').composite as Array<
-                  [string, Bookmark]
-                >)
-              )
-            ) {
-              await settings.set('bookmarks', persistentSettings.bookmarks);
+            if (response.result === true) {
+              const persistentSettings = JSON.parse(response.settings);
+              if (
+                !compareBookmarkMaps(
+                  new Map(persistentSettings.bookmarks),
+                  new Map(settings.get('bookmarks').composite as Array<
+                    [string, Bookmark]
+                  >)
+                )
+              ) {
+                await settings.set('bookmarks', persistentSettings.bookmarks);
+              }
             }
           })
           .then(() => {

@@ -422,8 +422,8 @@ export function addAutoSyncToBookmark(
  * For this the function compares all properties of the Bookmarks in the maps one by one.
  * Immediately returns `false` if the `Maps` are of different sizes, and
  * if the one of the Maps doesn't have an entry from the other.
- * @param persistentBookmarks 
- * @param settingsBookmarks 
+ * @param persistentBookmarks
+ * @param settingsBookmarks
  * @returns `boolean`
  */
 export function compareBookmarkMaps(
@@ -463,7 +463,7 @@ export function compareBookmarkMaps(
 }
 /**
  * Imports the bookmarks stored in the JSON file stored in the argument.
- * @param bookmarkFile 
+ * @param bookmarkFile
  */
 export function importBookmarks(bookmarkFile: File): void {
   requestAPI<any>('importBookmarks', {

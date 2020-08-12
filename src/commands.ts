@@ -238,7 +238,7 @@ export const deleteCategoryCommand = {
 };
 
 /**
- * Command used for importing bookmarks. Opens browser-native Open file 
+ * Command used for importing bookmarks. Opens browser-native Open file
  * dialog, so that user can select the appropriate JSON file.
  * File type is limited to JSON.
  */

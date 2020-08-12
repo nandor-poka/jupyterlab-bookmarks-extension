@@ -20,7 +20,7 @@ import { Bookmark } from './bookmark';
 
 //Global vars and exports
 /**
- * Prefix string used for commands and icons for this extension. 
+ * Prefix string used for commands and icons for this extension.
  */
 export const commandPrefix = 'jupyterlab-bookmarks-extension:';
 /**
